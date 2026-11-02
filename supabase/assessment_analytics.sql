@@ -1,5 +1,5 @@
 create or replace function public.get_academy_assessment_analytics()
-returns jsonb language plpgsql stable security invoker
+returns jsonb language plpgsql stable security definer
 set search_path = public, private, pg_temp
 as $fn$
 begin
