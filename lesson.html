@@ -33,7 +33,7 @@ async function loadLessonQuiz(){
 }
 async function beginLessonQuiz(){
  const{data,error}=await db.rpc("begin_lesson_quiz",{p_lesson_id:currentLesson.id});if(error){quizStatus("تعذر بدء الاختبار: "+error.message);return}
- quizSessionId=data.session_id;quizQuestions=data.questions||[];quizAnswers=quizQuestions.map(()=>null);quizPosition=0;quizSubmitted=false;quizExpiresAt=new Date(data.expires_at).getTime();
+ quizSessionId=data.session_id;quizQuestions=data.questions||[];quizAnswers=quizQuestions.map(()=>null);quizPosition=0;quizSubmitted=false;$("quizSubmit").disabled=false;quizExpiresAt=new Date(data.expires_at).getTime();
  $("quizStart").hidden=true;$("quizResult").hidden=true;$("quizRunner").hidden=false;quizStatus("بدأ الاختبار. لن تظهر الإجابات الصحيحة إلا بعد التسليم.");
  renderLessonQuizQuestion();startLessonQuizTimer();
 }
