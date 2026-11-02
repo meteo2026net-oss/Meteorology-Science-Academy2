@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#081321">
+<title>تحليلات التقييم | أكاديمية علوم الأرصاد</title>
+<style>
+:root{--bg:#081321;--p:#102137;--p2:#142b42;--line:#29445d;--txt:#edf6ff;--muted:#a9bfd2;--cyan:#42d6e8;--gold:#f4c45e;--green:#55d6a0;--red:#ff7777}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#173651,transparent 38%),var(--bg);color:var(--txt);font:15px/1.9 Tahoma,Arial,sans-serif}.wrap{max-width:1250px;margin:auto;padding:22px}
+header,.row,.actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,var(--cyan),#2879b8);display:grid;place-items:center;color:#06202b;font-size:22px}
+.panel,.stat,.item{background:var(--p);border:1px solid var(--line);border-radius:15px;padding:16px;margin:13px 0}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat b{display:block;font-size:27px;color:var(--gold)}.muted,small{color:var(--muted)}.eyebrow{color:var(--cyan);font-weight:bold;font-size:13px}
+input{font:inherit;color:var(--txt);background:#091827;border:1px solid var(--line);border-radius:9px;padding:10px;width:100%;margin-top:5px}.fields{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+button,.btn{font:inherit;border:1px solid var(--line);border-radius:9px;padding:8px 13px;background:var(--p2);color:var(--txt);cursor:pointer;text-decoration:none}.primary{background:var(--cyan);color:#05202a;border-color:var(--cyan);font-weight:bold}
+.status{padding:10px 12px;background:#0b1928;border-right:3px solid var(--cyan);border-radius:8px;margin:10px 0}.hidden{display:none!important}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{background:#0a1a2a;border-radius:9px;padding:10px}.metric b{display:block;font-size:21px;color:var(--gold)}
+.bar{height:9px;background:#263d51;border-radius:10px;overflow:hidden;margin:7px 0}.bar span{display:block;height:100%;background:var(--cyan)}.lineitem{padding:10px 0;border-bottom:1px solid var(--line)}.tag{padding:2px 9px;border:1px solid var(--line);border-radius:20px;font-size:12px}
+.note{border-right:3px solid var(--gold);padding:10px 13px;background:#1b2632;border-radius:8px}.warning{border-right-color:var(--red)}.good{color:var(--green)}
+@media(max-width:760px){.wrap{padding:12px}.grid{grid-template-columns:repeat(2,1fr)}.fields,.metrics{grid-template-columns:1fr}}
+</style></head>
+<body><main class="wrap">
+<header><div class="brand"><div class="logo">▥</div><div><b>مركز تحليلات التقييم</b><div class="muted">Assessment Analytics · Admin Read-only</div></div></div>
+<div class="actions"><a class="btn" href="admin.html">الإدارة</a><a class="btn" href="exam-studio.html">بنك الأسئلة</a><a class="btn" href="course-readiness.html">جاهزية المقررات</a><a class="btn" href="students.html">متابعة الطلاب</a></div></header>
+<section class="panel"><div class="eyebrow">مراقبة جودة التقييم والتقدم</div><h1>تحليلات الاختبارات وبنك الأسئلة</h1>
+<p class="muted">لوحة للقراءة فقط تجمع بنية بنك الأسئلة ونشاط الاختبارات وجودة ربط المحتوى. لا تغيّر الدرجات ولا تنشر الاختبارات أو الدروس.</p>
+<div class="fields"><label>رابط Supabase<input id="url" type="url" autocomplete="url"></label><label>مفتاح Publishable<input id="key" type="password" autocomplete="off"></label><label>البريد الإلكتروني<input id="email" type="email" autocomplete="username"></label><label>كلمة المرور<input id="password" type="password" autocomplete="current-password"></label></div>
+<div class="actions" style="margin-top:12px"><button id="connect" class="primary">دخول المدير وتحميل التحليلات</button><button id="refresh" disabled>تحديث التقرير</button><button id="logout" class="hidden">تسجيل الخروج</button></div><div id="status" class="status">يلزم تسجيل الدخول بحساب مدير.</div></section>
+<section id="report" class="hidden">
+<div class="grid">
+<div class="stat"><b id="qTotal">0</b>إجمالي الأسئلة</div><div class="stat"><b id="qActive">0</b>أسئلة نشطة</div><div class="stat"><b id="attempts">0</b>محاولات الاختبار</div><div class="stat"><b id="students">0</b>طلاب لديهم محاولات</div>
+<div class="stat"><b id="avg">—</b>متوسط الدرجات</div><div class="stat"><b id="pass">—</b>معدل الاجتياز</div><div class="stat"><b id="exams">0</b>اختبارات مركزية منشورة</div><div class="stat"><b id="lessonQuizzes">0</b>اختبارات دروس منشورة</div>
+</div>
+<div id="psychometrics" class="note"></div>
+<div class="panel"><div class="row"><h2>توزيع بنك الأسئلة حسب النوع</h2><span class="tag">أسئلة نشطة</span></div><div id="types"></div></div>
+<div class="panel"><div class="row"><h2>التوزيع حسب المسار والمستوى</h2></div><div id="tracks"></div></div>
+<div class="panel"><h2>جودة بيانات بنك الأسئلة</h2><div class="metrics" id="questionQuality"></div></div>
+<div class="panel"><h2>جاهزية المحتوى التعليمي</h2><div class="metrics" id="contentMetrics"></div></div>
+<div class="panel"><h2>الجلسات النشطة</h2><div class="metrics" id="sessions"></div></div>
+<div class="panel"><div class="row"><h2>ملاحظات القياس</h2><small id="generated"></small></div><p class="muted">لا نحسب صعوبة السؤال أو معامل تمييزه من عدد الأسئلة وحده. يتطلب التحليل الإحصائي إجابات فعلية كافية، ويُشترط حد أدنى قدره 30 استجابة لكل سؤال قبل عرض مؤشرات أولية، مع مراجعة تفسيرها تربوياً.</p><p class="muted">هذه اللوحة لا تعرض الإجابات الصحيحة ولا تفاصيل إجابات الطلاب، وتقتصر على مؤشرات مجمعة للمدير.</p></div>
+</section>
+</main>
+<script type="module">
+import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm";
+import{SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY}from"./supabase-config.js";
+const $=id=>document.getElementById(id),STORE="msa-supabase-config-v1";let db=null;
+const labels={concept:"مفاهيمي",calculation:"حسابي",data_interpretation:"تفسير بيانات",map_analysis:"تحليل خرائط",unclassified:"غير مصنف",math:"رياضيات",physics:"فيزياء",basic:"أساسي",intermediate:"متوسط",advanced:"متقدم"};
+function say(s,bad=false){$("status").textContent=s;$("status").style.borderRightColor=bad?"#ff7777":"#42d6e8"}
+function metric(label,value){const d=document.createElement("div");d.className="metric";const b=document.createElement("b");b.textContent=value??0;d.append(b,document.createTextNode(label));return d}
+function renderRows(host,rows,labelFn){host.replaceChildren();if(!rows?.length){host.textContent="لا توجد بيانات.";return}for(const r of rows){const line=document.createElement("div");line.className="lineitem";const title=document.createElement("b");title.textContent=labelFn(r);const count=document.createElement("span");count.className="tag";count.textContent=String(r.count);const bar=document.createElement("div");bar.className="bar";const fill=document.createElement("span");fill.style.width=Math.min(100,Number(r.count)/(Math.max(...rows.map(x=>Number(x.count)),1))*100)+"%";bar.append(fill);line.append(title,count,bar);host.append(line)}}
+function render(d){
+ const q=d.question_bank||{},a=d.assessment_activity||{},c=d.learning_content||{};
+ const vals={qTotal:q.total,qActive:q.active,attempts:a.exam_attempts,students:a.unique_students,avg:a.average_score===null?"—":a.average_score+"%",pass:a.pass_rate===null?"—":a.pass_rate+"%",exams:a.published_exams,lessonQuizzes:a.published_lesson_quizzes};
+ for(const [id,v] of Object.entries(vals))$(id).textContent=v??0;
+ $("psychometrics").textContent=Number(a.exam_attempts)===0?"لا توجد محاولات طلاب حتى الآن؛ لذلك لا تتوفر بيانات حقيقية لتحليل صعوبة الأسئلة أو تمييزها. ستظل هذه المؤشرات غير محسوبة حتى تبدأ الاختبارات وتتوافر عينة كافية.":"عدد المحاولات متاح، لكن يلزم استكمال تحليل استجابات الأسئلة والتحقق من كفاية العينة قبل تفسير المؤشرات.";
+ renderRows($("types"),q.by_type,r=>(labels[r.type]||r.type));
+ renderRows($("tracks"),q.by_track_level,r=>(labels[r.track]||r.track)+" · "+(labels[r.level]||r.level));
+ $("questionQuality").replaceChildren(metric("دون هدف تعلم",q.missing_learning_objective),metric("دون تفسير",q.missing_explanation),metric("دون موضوع",q.missing_topic));
+ $("contentMetrics").replaceChildren(metric("المقررات",c.courses),metric("الفصول",c.chapters),metric("الوحدات",c.units),metric("الدروس",c.lessons),metric("دروس معتمدة",c.approved_lessons),metric("بانتظار المراجعة",c.pending_lessons),metric("دون أهداف مرتبطة",c.lessons_without_objectives),metric("دون اختبار منشور",c.lessons_without_quiz),metric("نقص الارتباط الهرمي",c.lessons_missing_hierarchy),metric("حسابات الطلاب",c.student_profiles),metric("سجلات التقدم",c.progress_records),metric("الشهادات",c.certificates));
+ $("sessions").replaceChildren(metric("جلسات اختبارات مركزية مفتوحة",a.open_exam_sessions),metric("جلسات اختبارات دروس مفتوحة",a.open_lesson_quiz_sessions));
+ $("generated").textContent="آخر تحديث: "+new Date(d.generated_at||Date.now()).toLocaleString("ar");$("report").classList.remove("hidden");
+}
+async function load(){ $("refresh").disabled=true;say("جارٍ تحميل التحليلات من قاعدة البيانات…");const{data,error}=await db.rpc("get_academy_assessment_analytics");if(error){say("تعذر تحميل التقرير: "+error.message,true);$("refresh").disabled=false;return}render(data||{});$("refresh").disabled=false;say("اكتمل التقرير للقراءة فقط. لم يتم تعديل أي بيانات.");}
+async function connect(){const url=$("url").value.trim(),key=$("key").value.trim(),email=$("email").value.trim(),password=$("password").value;if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)||!key||!email||!password){say("أكمل بيانات الاتصال المطلوبة.",true);return}localStorage.setItem(STORE,JSON.stringify({url,key}));db=createClient(url,key);say("جارٍ التحقق من الحساب…");const{error}=await db.auth.signInWithPassword({email,password});if(error){say("فشل تسجيل الدخول: "+error.message,true);return}const{data:{user}}=await db.auth.getUser();const{data:profile,error:pe}=await db.from("academy_profiles").select("role").eq("id",user.id).maybeSingle();if(pe||profile?.role!=="admin"){await db.auth.signOut();say("تم رفض الوصول: هذه الصفحة للمدير فقط.",true);return}$("logout").classList.remove("hidden");await load()}
+$("connect").onclick=connect;$("refresh").onclick=load;$("logout").onclick=async()=>{if(db)await db.auth.signOut();db=null;$("report").classList.add("hidden");$("logout").classList.add("hidden");say("تم تسجيل الخروج.")};
+try{const saved=JSON.parse(localStorage.getItem(STORE)||"{}");$("url").value=saved.url||SUPABASE_URL||"";$("key").value=saved.key||SUPABASE_PUBLISHABLE_KEY||""}catch{$("url").value=SUPABASE_URL||"";$("key").value=SUPABASE_PUBLISHABLE_KEY||""}
+</script></body></html>
