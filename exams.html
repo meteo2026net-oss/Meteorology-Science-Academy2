@@ -28,68 +28,85 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:18px}
 <footer>جميع الأسئلة تعليمية تأسيسية. لا تستخدم نتائج هذا الاختبار وحدها لاتخاذ قرارات أرصادية تشغيلية.</footer>
 </main>
 <script>
-const bank=[
-{t:"math",l:"basic",u:"الأعداد والوحدات",q:"حوّل 2.5 كيلومتر إلى متر.",o:["25 m","250 m","2500 m","25000 m"],a:2,e:"كل كيلومتر يساوي 1000 متر؛ 2.5 × 1000 = 2500 متر."},
-{t:"math",l:"basic",u:"الجبر",q:"إذا كانت T = 18 + 3x، فما قيمة T عندما x = 4؟",o:["21","24","30","36"],a:2,e:"نعوض x=4: ‏T=18+3×4=30."},
-{t:"math",l:"basic",u:"الهندسة",q:"ما مساحة مستطيل طوله 8 cm وعرضه 3 cm؟",o:["11 cm²","22 cm²","24 cm²","48 cm²"],a:2,e:"مساحة المستطيل = الطول × العرض = 8×3 = 24 cm²."},
-{t:"math",l:"basic",u:"الإحصاء",q:"ما متوسط القيم 10 و12 و14؟",o:["10","11","12","13"],a:2,e:"المتوسط = مجموع القيم ÷ عددها = 36÷3 = 12."},
-{t:"math",l:"intermediate",u:"الدوال",q:"إذا كانت f(x)=2x+1، فما f(5)؟",o:["6","10","11","12"],a:2,e:"نعوض x=5: ‏2×5+1=11."},
-{t:"math",l:"intermediate",u:"المتجهات",q:"متجهان متعامدان مركبتاهما 3 و4. ما مقدار المحصلة؟",o:["1","5","7","12"],a:1,e:"باستخدام فيثاغورس: √(3²+4²)=5."},
-{t:"math",l:"intermediate",u:"الاحتمالات",q:"عند رمي نرد متوازن، ما احتمال ظهور عدد زوجي؟",o:["1/6","1/3","1/2","2/3"],a:2,e:"الأعداد الزوجية 2 و4 و6؛ ثلاث نتائج من أصل ست، أي 3/6=1/2."},
-{t:"math",l:"intermediate",u:"التفاضل",q:"ما مشتقة الدالة f(x)=x²؟",o:["x","2x","x²","2"],a:1,e:"قاعدة القوة: مشتقة xⁿ هي n x^(n−1)، لذلك مشتقة x² هي 2x."},
-{t:"math",l:"advanced",u:"التكامل",q:"ما التكامل غير المحدد للدالة 2x بالنسبة إلى x؟",o:["2x²+C","x²+C","x+C","2+C"],a:1,e:"لأن مشتقة x² تساوي 2x، فإن التكامل هو x²+C."},
-{t:"math",l:"advanced",u:"المعادلات التفاضلية",q:"إذا كان dT/dt = −k(T−Ta)، فما نوع هذا النموذج؟",o:["نمو خطي ثابت","اقتراب أسي نحو Ta","دالة جيبية","تناقص تربيعي"],a:1,e:"معدل التغير يتناسب مع الفرق عن Ta؛ وهو نموذج استرخاء/اقتراب أسي."},
-{t:"math",l:"advanced",u:"الطرق العددية",q:"في طريقة أويلر، نقرّب y عند x+h باستخدام:",o:["y(x)+h f(x,y)","y(x)−h²","f(x)/h","y(x)×h"],a:0,e:"صيغة أويلر الصريحة: y(n+1)=y(n)+h f(x(n),y(n))."},
-{t:"math",l:"advanced",u:"السلاسل الزمنية",q:"إذا كانت القراءات كل 3 ساعات، فما تردد أخذ العينات في اليوم؟",o:["3","6","8","12"],a:2,e:"24 ساعة ÷ 3 ساعات = 8 فترات/قراءات يومياً إذا بدأنا عند توقيت ثابت."},
-{t:"physics",l:"basic",u:"القياس",q:"ما وحدة الضغط في النظام الدولي؟",o:["نيوتن","باسكال","جول","واط"],a:1,e:"وحدة الضغط هي الباسكال، وتساوي نيوتن لكل متر مربع."},
-{t:"physics",l:"basic",u:"الكثافة",q:"كتلة جسم 200 g وحجمه 100 cm³. ما كثافته؟",o:["0.5 g/cm³","2 g/cm³","20 g/cm³","200 g/cm³"],a:1,e:"الكثافة = الكتلة ÷ الحجم = 200÷100 = 2 g/cm³."},
-{t:"physics",l:"basic",u:"الحركة",q:"قطعت مركبة أرصاد 120 km خلال ساعتين. ما سرعتها المتوسطة؟",o:["30 km/h","60 km/h","120 km/h","240 km/h"],a:1,e:"السرعة المتوسطة = المسافة ÷ الزمن = 120÷2 = 60 km/h."},
-{t:"physics",l:"basic",u:"الحرارة",q:"أي عبارة تميز الحرارة عن درجة الحرارة؟",o:["الحرارة طاقة تنتقل بسبب فرق درجة الحرارة","هما الكمية نفسها دائماً","درجة الحرارة تقاس بالجول","الحرارة لا تنتقل"],a:0,e:"الحرارة طاقة تنتقل بين الأجسام بسبب فرق درجة الحرارة، أما درجة الحرارة فمقياس للحالة الحرارية."},
-{t:"physics",l:"intermediate",u:"قوانين نيوتن",q:"إذا تضاعفت القوة المحصلة على كتلة ثابتة، فإن التسارع:",o:["ينخفض للنصف","يتضاعف","لا يتغير","يصبح صفراً"],a:1,e:"من قانون نيوتن الثاني a=F/m؛ عند ثبات الكتلة يتناسب التسارع طردياً مع القوة."},
-{t:"physics",l:"intermediate",u:"الغازات المثالية",q:"في العلاقة PV=nRT، ماذا تمثل T؟",o:["الزمن بالثواني","درجة الحرارة المطلقة بالكلفن","درجة الحرارة المئوية فقط","الكتلة"],a:1,e:"في قانون الغاز المثالي يجب استخدام درجة الحرارة المطلقة بالكلفن."},
-{t:"physics",l:"intermediate",u:"الرطوبة",q:"إذا كان ضغط بخار الماء الفعلي 10 hPa وضغط الإشباع 20 hPa، فالرطوبة النسبية:",o:["25%","50%","75%","100%"],a:1,e:"RH = (ضغط البخار الفعلي ÷ ضغط الإشباع)×100 = 50%."},
-{t:"physics",l:"intermediate",u:"ميكانيكا الموائع",q:"في مائع ساكن، يزداد الضغط الهيدروستاتيكي مع:",o:["العمق","اللون","المساحة السطحية فقط","سرعة الضوء"],a:0,e:"الضغط الهيدروستاتيكي النسبي يزداد مع العمق وفق p=ρgh."},
-{t:"physics",l:"advanced",u:"الديناميكا الحرارية",q:"ما المقصود بعملية أديباتية مثالية؟",o:["تبادل حرارة مستمر","لا يحدث فيها انتقال حرارة مع الوسط","درجة الحرارة ثابتة بالضرورة","الضغط ثابت بالضرورة"],a:1,e:"في العملية الأديباتية يكون انتقال الحرارة Q صفراً؛ ولا يعني ذلك بالضرورة ثبات درجة الحرارة."},
-{t:"physics",l:"advanced",u:"انتقال الحرارة",q:"أي آلية لنقل الطاقة لا تحتاج إلى وسط مادي؟",o:["التوصيل","الحمل","الإشعاع","الانتشار الجزيئي"],a:2,e:"الإشعاع الكهرومغناطيسي يمكنه الانتقال في الفراغ، بخلاف التوصيل والحمل."},
-{t:"physics",l:"advanced",u:"ديناميكا الغلاف الجوي",q:"ما القوة الظاهرية التي تؤثر في حركة الهواء بسبب دوران الأرض؟",o:["قوة كوريوليس","قوة الطفو وحدها","قوة الاحتكاك الجزيئي فقط","قوة التوتر السطحي"],a:0,e:"تأثير كوريوليس ينحرف بالحركة بالنسبة إلى إطار الأرض الدوار؛ إلى اليمين في نصف الكرة الشمالي وإلى اليسار في الجنوبي."},
-{t:"physics",l:"advanced",u:"الضغط الجوي",q:"في التقريب الهيدروستاتيكي، ما العلاقة الأساسية بين تغير الضغط والارتفاع؟",o:["dp/dz=ρg","dp/dz=−ρg","dp/dz=0 دائماً","dp/dz=−g/ρ"],a:1,e:"مع اعتبار z موجباً إلى أعلى، معادلة الاتزان الهيدروستاتيكي dp/dz=−ρg."}
-];
-const $=id=>document.getElementById(id), key="msa-exam-results-v1";
+const $=id=>document.getElementById(id);
 let current=[],answers=[],pos=0,submitted=false,lastResult=null;
-const trackName=t=>t==="math"?"الرياضيات":t==="physics"?"الفيزياء":"المسار المختلط";
-const levelName=l=>({basic:"أساسي",intermediate:"متوسط",advanced:"متقدم"}[l]||"متنوع");
-const read=()=>{let local=[];try{local=JSON.parse(localStorage.getItem(key)||"[]")}catch{}const remote=window.msaRemoteExamHistory||[];const seen=new Set(remote.map(x=>x.date+"|"+x.score+"|"+x.track));return [...remote,...local.filter(x=>!seen.has(x.date+"|"+x.score+"|"+x.track))].sort((a,b)=>new Date(b.date)-new Date(a.date))};
-function refresh(){let h=read(),passed=h.filter(x=>x.pass);$("attempts").textContent=h.length;$("mastered").textContent=passed.length;$("best").textContent=h.length?Math.max(...h.map(x=>x.score))+"%":"—";
-$("historyBody").innerHTML=h.length?'<table><thead><tr><th>التاريخ</th><th>المسار</th><th>النتيجة</th><th>الحالة</th></tr></thead><tbody>'+h.slice().reverse().map(x=>'<tr><td>'+new Date(x.date).toLocaleDateString("ar")+'</td><td>'+trackName(x.track)+'</td><td>'+x.score+'%</td><td class="'+(x.pass?"good":"bad")+'">'+(x.pass?"مجتاز":"لم يجتز")+'</td></tr>').join("")+'</tbody></table>':"لم تسجل محاولات بعد.";
-$("certList").innerHTML=passed.length?passed.map((x,i)=>'<button class="btn gold" data-cert="'+(h.indexOf(x))+'">شهادة '+trackName(x.track)+' · '+x.score+'%</button>').join(" "):"لا توجد شهادات متاحة بعد.";
-document.querySelectorAll("[data-cert]").forEach(b=>b.onclick=()=>showCert(read()[Number(b.dataset.cert)]));
+const names={math:"الرياضيات",physics:"الفيزياء",all:"المسار المختلط"};
+const levels={basic:"أساسي",intermediate:"متوسط",advanced:"متقدم",all:"جميع المستويات"};
+const data=()=>window.msaExamData||{history:[],certificates:[]};
+const el=(tag,text,cls)=>{const x=document.createElement(tag);if(text!==undefined)x.textContent=text;if(cls)x.className=cls;return x};
+function refresh(){
+ const d=data(),h=d.history||[],passed=h.filter(x=>x.passed);
+ $("attempts").textContent=h.length;$("mastered").textContent=passed.length;
+ $("best").textContent=h.length?Math.max(...h.map(x=>Number(x.score)))+"%":"—";
+ const host=$("historyBody");host.replaceChildren();
+ if(!h.length)host.textContent="لم تسجل محاولات بعد.";
+ else{const table=el("table"),head=el("thead"),hr=el("tr");["التاريخ","المسار","المستوى","النتيجة","الحالة"].forEach(x=>hr.append(el("th",x)));head.append(hr);const body=el("tbody");
+ for(const x of h){const tr=el("tr");tr.append(el("td",new Date(x.created_at).toLocaleDateString("ar")),el("td",names[x.track]||x.track),el("td",levels[x.level]||x.level),el("td",Number(x.score)+"%"),el("td",x.passed?"مجتاز":"لم يجتز",x.passed?"good":"bad"));body.append(tr)}table.append(head,body);host.append(table)}
+ const certHost=$("certList");certHost.replaceChildren();
+ if(!d.certificates?.length)certHost.textContent="لا توجد شهادات صادرة حتى الآن.";
+ else for(const cert of d.certificates){const b=el("button","شهادة "+(names[cert.track]||cert.track)+" · "+cert.score+"%","btn gold");b.onclick=()=>showCert(cert);certHost.append(b)}
 }
-function start(){let t=$("track").value,l=$("level").value,n=Number($("count").value);let pool=bank.filter(q=>(t==="all"||q.t===t)&&(l==="all"||q.l===l));if(pool.length<n){alert("عدد الأسئلة المتاح لهذا الاختيار هو "+pool.length+". اختر عدداً أقل أو مستوى آخر.");return}
-current=pool.sort(()=>Math.random()-.5).slice(0,n);answers=Array(n).fill(null);pos=0;submitted=false;$("setup").classList.add("hidden");$("result").classList.add("hidden");$("exam").classList.remove("hidden");renderQ();}
-function renderQ(){let q=current[pos];$("qcount").textContent="السؤال "+(pos+1)+" من "+current.length;$("qmeta").textContent=trackName(q.t)+" · "+levelName(q.l)+" · "+q.u;$("prompt").textContent=q.q;$("bar").style.width=((pos+1)/current.length*100)+"%";$("options").innerHTML=q.o.map((o,i)=>'<button class="option '+(answers[pos]===i?"chosen":"")+'" data-i="'+i+'" '+(submitted?"disabled":"")+'>'+String.fromCharCode(1571+i)+". "+o+'</button>').join("");document.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{if(submitted)return;answers[pos]=Number(b.dataset.i);renderQ()});$("prev").disabled=pos===0;$("next").classList.toggle("hidden",pos===current.length-1);$("submit").classList.toggle("hidden",pos!==current.length-1);}
-function submit(){if(answers.some(x=>x===null)){if(!confirm("هناك أسئلة دون إجابة. هل تريد التسليم الآن؟"))return}submitted=true;let correct=current.filter((q,i)=>answers[i]===q.a).length,score=Math.round(correct/current.length*100),track=$("track").value,pass=score>=70;lastResult={date:new Date().toISOString(),track,level:$("level").value,score,correct,total:current.length,pass};let h=read();h.push(lastResult);localStorage.setItem(key,JSON.stringify(h));window.dispatchEvent(new CustomEvent("msa-exam-result",{detail:{...lastResult,answers:current.map((q,i)=>({question:q.q,choices:q.o,selected:answers[i],correct_index:q.a,explanation:q.e}))}}));$("exam").classList.add("hidden");$("result").classList.remove("hidden");$("result").innerHTML='<div class="eyebrow">نتيجة الاختبار</div><h2 class="'+(pass?"good":"bad")+'">'+(pass?"أحسنت، اجتزت الاختبار":"تحتاج إلى مراجعة بعض المفاهيم")+'</h2><div class="grid"><div class="stat"><b>'+score+'%</b>النتيجة</div><div class="stat"><b>'+correct+'/'+current.length+'</b>إجابات صحيحة</div><div class="stat"><b>'+(pass?"اجتياز":"غير مجتاز")+'</b>الحالة</div></div><h3>مراجعة الأسئلة والتفسيرات</h3>'+current.map((q,i)=>'<div class="question"><div class="qtop"><span>سؤال '+(i+1)+' · '+q.u+'</span><span class="'+(answers[i]===q.a?"good":"bad")+'">'+(answers[i]===q.a?"صحيح":"غير صحيح")+'</span></div><b>'+q.q+'</b><p>إجابتك: '+(answers[i]===null?"لم تجب":q.o[answers[i]])+'</p><p class="good">الإجابة الصحيحة: '+q.o[q.a]+'</p><div class="explain">'+q.e+'</div></div>').join("")+'<div class="actions"><button class="primary" id="again">اختبار جديد</button>'+(pass&&track!=="all"?'<button class="gold" id="certificate">إصدار شهادة الإتمام</button>':"")+'</div>'+(pass&&track==="all"?'<p class="hint">اجتزت الاختبار المختلط. للحصول على شهادة مسار، اجتز اختبار الرياضيات أو الفيزياء بشكل مستقل.</p>':"");$("again").onclick=()=>{$("setup").classList.remove("hidden");$("result").classList.add("hidden")};if(pass&&track!=="all")$("certificate").onclick=()=>showCert(lastResult);refresh();}
-function showCert(r){if(!r||!r.pass||r.track==="all")return;const student=prompt("اكتب اسم الطالب كما تريد ظهوره في الشهادة:","الطالب");if(student===null)return;$("certificateArea").classList.remove("hidden");$("certName").textContent=student.trim()||"الطالب";$("certTrack").textContent=trackName(r.track);$("certScore").textContent="نتيجة الاجتياز: "+r.score+"%";$("certDate").textContent="تاريخ الإتمام: "+new Date(r.date).toLocaleDateString("ar");$("certificateArea").scrollIntoView({behavior:"smooth"});}
-$("start").onclick=start;$("prev").onclick=()=>{if(pos>0){pos--;renderQ()}};$("next").onclick=()=>{if(pos<current.length-1){pos++;renderQ()}};$("submit").onclick=submit;$("quit").onclick=()=>{if(confirm("سيتم إنهاء الاختبار دون تسجيل نتيجة. متابعة؟")){$("exam").classList.add("hidden");$("setup").classList.remove("hidden")}};$("closeCert").onclick=()=>$("certificateArea").classList.add("hidden");refresh();
+window.refreshExamUi=refresh;
+function showCert(cert){if(!cert)return;$("certificateArea").classList.remove("hidden");$("certName").textContent=cert.student_name||"طالب الأكاديمية";$("certTrack").textContent=names[cert.track]||cert.track;$("certScore").textContent="نتيجة الاجتياز: "+cert.score+"%";$("certDate").textContent="تاريخ الإصدار: "+new Date(cert.issued_at).toLocaleDateString("ar")+" · رقم الشهادة: "+cert.certificate_code;$("certificateArea").scrollIntoView({behavior:"smooth"})}
+async function start(){
+ if(!window.msaExamApi){alert("خدمة الاختبارات لم تجهز بعد. أعد تحميل الصفحة.");return}
+ const track=$("track").value,level=$("level").value,count=Number($("count").value);
+ try{const pool=await window.msaExamApi.getQuestions(track,level,100);
+ if(pool.length<count){alert("المتاح لهذا الاختيار "+pool.length+" سؤالاً فقط. اختر جميع المستويات أو قلل عدد الأسئلة.");return}
+ current=pool.sort(()=>Math.random()-.5).slice(0,count);answers=Array(count).fill(null);pos=0;submitted=false;
+ $("setup").classList.add("hidden");$("result").classList.add("hidden");$("exam").classList.remove("hidden");renderQ()
+ }catch(e){alert("تعذر بدء الاختبار: "+e.message)}
+}
+function renderQ(){
+ const q=current[pos];$("qcount").textContent="السؤال "+(pos+1)+" من "+current.length;
+ $("qmeta").textContent=(names[q.track]||q.track)+" · "+(levels[q.level]||q.level)+" · "+q.topic;
+ $("prompt").textContent=q.prompt;$("bar").style.width=((pos+1)/current.length*100)+"%";
+ const host=$("options");host.replaceChildren();
+ q.choices.forEach((choice,i)=>{const b=el("button",String.fromCharCode(1571+i)+". "+choice,"option "+(answers[pos]===i?"chosen":""));b.disabled=submitted;b.onclick=()=>{if(submitted)return;answers[pos]=i;renderQ()};host.append(b)});
+ $("prev").disabled=pos===0;$("next").classList.toggle("hidden",pos===current.length-1);$("submit").classList.toggle("hidden",pos!==current.length-1)
+}
+function renderReview(review){
+ const host=$("result");host.replaceChildren();
+ const title=el("div","نتيجة الاختبار","eyebrow"),heading=el("h2",lastResult.passed?"أحسنت، اجتزت الاختبار":"تحتاج إلى مراجعة بعض المفاهيم",lastResult.passed?"good":"bad");host.append(title,heading);
+ const grid=el("div",undefined,"grid");
+ [[lastResult.score+"%","النتيجة"],[lastResult.correct_count+"/"+lastResult.total_count,"إجابات صحيحة"],[lastResult.passed?"اجتياز":"غير مجتاز","الحالة"]].forEach(([v,l])=>{const box=el("div",undefined,"stat");box.append(el("b",v),el("span",l));grid.append(box)});host.append(grid,el("h3","مراجعة الأسئلة والتفسيرات"));
+ for(const [i,q] of (review||[]).entries()){const card=el("div",undefined,"question");card.append(el("div","سؤال "+(i+1)+" · "+q.topic,"qtop"),el("b",q.prompt),el("p","إجابتك: "+(q.selected_index===null?"لم تجب":q.choices[q.selected_index])),el("p","الإجابة الصحيحة: "+q.choices[q.correct_index],"good"),el("div",q.explanation,"explain"));host.append(card)}
+ const actions=el("div",undefined,"actions"),again=el("button","اختبار جديد","primary");again.onclick=()=>{$("setup").classList.remove("hidden");host.classList.add("hidden")};actions.append(again);
+ if(lastResult.certificate){const cert=el("button","عرض شهادة الإتمام","gold");cert.onclick=()=>showCert(lastResult.certificate);actions.append(cert)}
+ host.append(actions);
+}
+async function submit(){
+ if(submitted)return;
+ if(answers.some(x=>x===null)&&!confirm("هناك أسئلة دون إجابة. هل تريد التسليم الآن؟"))return;
+ submitted=true;$("submit").disabled=true;$("submit").textContent="جارٍ التصحيح…";
+ try{const result=await window.msaExamApi.submit($("track").value,$("level").value,current.map((q,i)=>({question_code:q.question_code,selected_index:answers[i]})));
+ lastResult=result;renderReview(result.review);$("exam").classList.add("hidden");$("result").classList.remove("hidden");await window.msaExamApi.refresh()
+ }catch(e){submitted=false;$("submit").disabled=false;$("submit").textContent="تسليم الاختبار";alert("تعذر تصحيح الاختبار وحفظه: "+e.message)}
+}
+$("start").onclick=start;$("prev").onclick=()=>{if(pos>0){pos--;renderQ()}};$("next").onclick=()=>{if(pos<current.length-1){pos++;renderQ()}};$("submit").onclick=submit;
+$("quit").onclick=()=>{if(confirm("سيتم إنهاء الاختبار دون تسجيل نتيجة. متابعة؟")){$("exam").classList.add("hidden");$("setup").classList.remove("hidden")}};
+$("closeCert").onclick=()=>$("certificateArea").classList.add("hidden");refresh();
 </script><script type="module">
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm";
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
-const configKey="msa-supabase-config-v1";window.msaRemoteExamHistory=[];
-function remoteRead(){try{const saved=JSON.parse(localStorage.getItem(configKey)||"{}");return {url:saved.url||SUPABASE_URL,key:saved.key||SUPABASE_PUBLISHABLE_KEY}}catch{return {url:SUPABASE_URL,key:SUPABASE_PUBLISHABLE_KEY}}}
-async function loadRemoteHistory(){try{const cfg=remoteRead();if(!cfg.url||!cfg.key)return;const client=createClient(cfg.url,cfg.key);const{data:{user},error:authError}=await client.auth.getUser();if(authError||!user)return;const{data,error}=await client.from("academy_exam_attempts").select("track,level,score,correct_count,total_count,passed,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(100);if(error)throw error;window.msaRemoteExamHistory=(data||[]).map(x=>({date:x.created_at,track:x.track,level:x.level,score:Number(x.score),correct:x.correct_count,total:x.total_count,pass:x.passed}));refresh()}catch(error){console.warn("تعذر تحميل سجل الاختبارات المركزي:",error.message||error)}}
-window.addEventListener("msa-exam-result",async event=>{
- try{
-  const cfg=remoteRead();
-  if(!cfg.url||!cfg.key)return;
-  const client=createClient(cfg.url,cfg.key);
-  const {data:{user},error:authError}=await client.auth.getUser();
-  if(authError||!user)return;
-  const r=event.detail;
-  const {error}=await client.from("academy_exam_attempts").insert({
-   user_id:user.id,track:r.track,level:r.level,score:r.score,
-   correct_count:r.correct,total_count:r.total,passed:r.pass,answers:r.answers
-  });
-  if(error)console.warn("تعذر مزامنة نتيجة الاختبار:",error.message);else{try{const local=JSON.parse(localStorage.getItem("msa-exam-results-v1")||"[]");localStorage.setItem("msa-exam-results-v1",JSON.stringify(local.filter(x=>x.date!==r.date)))}catch{}await loadRemoteHistory()}
- }catch(error){console.warn("تعذر الاتصال بحساب الأكاديمية:",error);}
-});
-loadRemoteHistory();
+import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
+const saved=(()=>{try{return JSON.parse(localStorage.getItem("msa-supabase-config-v1")||"{}")}catch{return{}}})();
+const cfg={url:saved.url||SUPABASE_URL,key:saved.key||SUPABASE_PUBLISHABLE_KEY};
+if(!cfg.url||!cfg.key)throw new Error("Supabase configuration is missing");
+const db=createClient(cfg.url,cfg.key);let user=null;
+async function requireUser(){const{data,error}=await db.auth.getUser();if(error||!data.user)throw new Error("سجّل الدخول من بوابة حساب الطالب قبل بدء الاختبار.");user=data.user;return user}
+async function refresh(){
+ await requireUser();
+ const [attempts,certs]=await Promise.all([
+ db.from("academy_exam_attempts").select("track,level,score,passed,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(100),
+ db.from("academy_certificates").select("certificate_code,student_name,track,score,issued_at,revoked_at").eq("user_id",user.id).is("revoked_at",null).order("issued_at",{ascending:false})
+ ]);
+ if(attempts.error)throw attempts.error;if(certs.error)throw certs.error;
+ window.msaExamData={history:attempts.data||[],certificates:certs.data||[]};window.refreshExamUi?.()
+}
+window.msaExamApi={
+ async getQuestions(track,level,limit){await requireUser();const{data,error}=await db.rpc("get_academy_exam_questions",{p_track:track,p_level:level,p_limit:limit});if(error)throw error;return data||[]},
+ async submit(track,level,answers){await requireUser();const{data,error}=await db.rpc("submit_academy_exam",{p_track:track,p_level:level,p_answers:answers});if(error)throw error;return data},
+ refresh
+};
+refresh().catch(e=>console.warn("تعذر تحميل سجل الاختبارات:",e.message));
 </script></body></html>
