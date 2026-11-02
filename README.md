@@ -140,6 +140,12 @@
 - `supabase/lesson_review_audit_and_summary.sql`
 - `supabase/index_lesson_review_reviewer_fk.sql`
 
+- `supabase/guard_course_chapter_unit_publication.sql` و`supabase/fix_hierarchy_publish_trigger_insert_guard.sql`: حماية تسلسل نشر المقرر ثم الفصل ثم الوحدة ثم الدرس.
+- `supabase/index_lesson_review_reviewer_fk.sql`: فهرسة مفتاح المراجع الأجنبي.
+- `students.html`: تصدير تقرير الطلاب المحمّل بصيغة CSV من لوحة الإدارة، إلى جانب تقارير التقدم والإتقان.
+
+اختبارات تحقق قاعدة البيانات المنفذة داخل كتل اختبار معزولة: منع نشر درس دون اعتماد، ومنع نشر فصل قبل المقرر، ومنع نشر وحدة قبل الفصل. انتهت الاختبارات الثلاثة بنجاح ولم تُغيّر بيانات المحتوى.
+
 ## تقارير إتقان الطلاب
 
 أضيف `get_academy_lesson_objective_mastery` لقراءة تقدم الطالب بحسب أهداف الدروس ودرجاته المسجلة، مع السماح للطالب بقراءة بياناته فقط وللمدير بقراءة طالب محدد. يتطلب التصنيف ثلاث نتائج دروس مقيمة على الأقل، ولا يصدر حكماً من بيانات قليلة.
