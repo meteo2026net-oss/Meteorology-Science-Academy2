@@ -15,6 +15,10 @@ begin
       'missing_learning_objective', (select count(*) from private.academy_exam_questions where active and nullif(btrim(coalesce(learning_objective,'')),'') is null),
       'missing_explanation', (select count(*) from private.academy_exam_questions where active and nullif(btrim(coalesce(explanation,'')),'') is null),
       'missing_topic', (select count(*) from private.academy_exam_questions where active and nullif(btrim(coalesce(topic,'')),'') is null),
+      'blank_prompt', (select count(*) from private.academy_exam_questions where active and nullif(btrim(coalesce(prompt,'')),'') is null),
+      'invalid_choices', (select count(*) from private.academy_exam_questions where active and jsonb_typeof(choices) is distinct from 'array'),
+      'too_few_choices', (select count(*) from private.academy_exam_questions where active and jsonb_typeof(choices) = 'array' and jsonb_array_length(choices) < 2),
+      'invalid_answer_index', (select count(*) from private.academy_exam_questions where active and (correct_index is null or correct_index < 0 or (jsonb_typeof(choices) = 'array' and correct_index >= jsonb_array_length(choices)))),
       'by_type', coalesce((select jsonb_agg(jsonb_build_object('type',coalesce(question_type,'unclassified'),'count',n)) from (select question_type,count(*) n from private.academy_exam_questions where active group by question_type) x),'[]'::jsonb),
       'by_track_level', coalesce((select jsonb_agg(jsonb_build_object('track',track,'level',level,'count',n)) from (select track,level,count(*) n from private.academy_exam_questions where active group by track,level) x),'[]'::jsonb)
     ),
