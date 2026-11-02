@@ -1,4 +1,4 @@
-create or replace function public.get_academy_assessment_analytics()
+create or replace function private.get_academy_assessment_analytics_internal()
 returns jsonb language plpgsql stable security definer
 set search_path = public, private, pg_temp
 as $fn$
