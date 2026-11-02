@@ -20,6 +20,7 @@
 </main>
 <script type="module">
 import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm";
+import{SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY}from"./supabase-config.js";
 const $=id=>document.getElementById(id),STORE="msa-supabase-config-v1";
 let db=null,chapters=[],units=[],lessons=[],moveUnits=[];
 const say=(s,bad=false)=>{$("status").textContent=s;$("status").style.borderColor=bad?"#ff7777":"#42d6e8"};
@@ -88,5 +89,5 @@ $("moveLesson").onclick=async()=>{
  if(error){say(error.message,true);return}
  say("تم نقل الدرس إلى الفصل والوحدة المحددين.");await loadAll();
 };
-try{const cfg=JSON.parse(localStorage.getItem(STORE)||"{}");$("url").value=cfg.url||"";$("key").value=cfg.key||""}catch{}
+try{const cfg=JSON.parse(localStorage.getItem(STORE)||"{}");$("url").value=SUPABASE_URL||cfg.url||"";$("key").value=SUPABASE_PUBLISHABLE_KEY||cfg.key||""}catch{$("url").value=SUPABASE_URL||"";$("key").value=SUPABASE_PUBLISHABLE_KEY||""}
 </script></body></html>
