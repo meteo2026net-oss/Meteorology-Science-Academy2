@@ -46,7 +46,7 @@ rows as (
 {"type":"text","text":"تطور المنخفض نتيجة تفاعل حراري وديناميكي متعدد المستويات. التحليل الجيد يربط السطح بالطبقات العليا ويتابع التغير الزمني."}
 ]}
 $lesson5$,50,25,'["شرح المراحل المفاهيمية لتطور المنخفض الجبهي","تحديد العوامل الحرارية والديناميكية المؤثرة في تعمقه","ربط خرائط السطح بخرائط الطبقات العليا"]'::jsonb
- ) as v(slug,title,summary,content,ord,mins,objectives)
+ )) as v(slug,title,summary,content,ord,mins,objectives)
  union all
  select c.id,ch2.id,u2.id,v.* from c cross join ch2 cross join u2 cross join (values
  ('upper-troughs-ridges-and-vorticity','الأخاديد والنتوءات والدوامية','قراءة الموجات الجوية في خرائط الارتفاع الجهدي وفهم الدوامية.',
@@ -71,7 +71,7 @@ $lesson5$,50,25,'["شرح المراحل المفاهيمية لتطور الم�
 {"type":"text","text":"الأخاديد والنتوءات تصف شكل الموجات الجوية، والدوامية تصف الدوران. دمجها مع الرطوبة والحركة الرأسية يحسن التحليل."}
 ]}
 $lesson6$,60,30,'["تمييز الأخاديد والنتوءات على خرائط 500 hPa","تعريف الدوامية النسبية وشرح إشارتها","ربط الموجات العلوية بعناصر التحليل الأخرى"]'::jsonb
- ) as v(slug,title,summary,content,ord,mins,objectives)
+ )) as v(slug,title,summary,content,ord,mins,objectives)
  union all
  select c.id,ch3.id,u3.id,v.* from c cross join ch3 cross join u3 cross join (values
  ('humidity-saturation-and-condensation','الرطوبة والتشبع والتكاثف','مقاييس بخار الماء ودرجة الندى والتشبع وتكوّن السحب.',
@@ -95,7 +95,7 @@ $lesson6$,60,30,'["تمييز الأخاديد والنتوءات على خرا�
 {"type":"text","text":"فهم مقاييس الرطوبة ودرجة الندى والتشبع يساعد على تقدير قابلية الهواء لتكوين السحب، ويجب دمجه مع الرفع والاستقرار والعمليات الميكروفيزيائية."}
 ]}
 $lesson7$,70,25,'["التمييز بين الرطوبة النسبية ونسبة الخلط والرطوبة النوعية","شرح التشبع ودرجة الندى","تفسير دور الرفع ونوى التكاثف في تكوّن السحب"]'::jsonb
- ) as v(slug,title,summary,content,ord,mins,objectives)
+ )) as v(slug,title,summary,content,ord,mins,objectives)
  union all
  select c.id,ch3.id,u4.id,v.* from c cross join ch3 cross join u4 cross join (values
  ('atmospheric-thermodynamics-and-adiabatic-processes','الديناميكا الحرارية الجوية والعمليات الأديباتية','الطرد الهوائي ومعدلات التناقص الحراري والتغير الأديباتي والاستقرار.',
@@ -141,7 +141,7 @@ $lesson8$,80,30,'["شرح مفهوم الطرد الهوائي والعملية 
 {"type":"text","text":"CAPE تصف طاقة الطفو الموجب، وCIN تصف كبح الطفو قبل بدء الحمل. تفسيرهما يتطلب فهم مسار الطرد وملف الحرارة والرطوبة والرفع والقص الرأسي."}
 ]}
 $lesson9$,90,35,'["تعريف CAPE وCIN ووحداتهما ومعناهما الفيزيائي","شرح دور LFC وEL في مسار الطرد","تقييم حدود المؤشرين ودمجهما مع الرصد والقص والرفع"]'::jsonb
- ) as v(slug,title,summary,content,ord,mins,objectives)
+ )) as v(slug,title,summary,content,ord,mins,objectives)
 )
 insert into public.academy_lessons
 (course_id,chapter_id,unit_id,slug,title,summary,content,published,sort_order,level,estimated_minutes,learning_objectives,chapter_title,unit_title)
