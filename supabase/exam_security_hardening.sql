@@ -44,3 +44,41 @@ drop policy if exists "deny_client_access_to_exam_answer_bank" on private.academ
 create policy "deny_client_access_to_exam_answer_bank"
 on private.academy_exam_questions for all to public
 using (false) with check (false);
+
+-- Public verification exposes only certificate validity and non-identifying award data.
+create or replace function private.verify_academy_certificate(p_code text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare v_cert public.academy_certificates%rowtype;
+begin
+  if p_code is null or length(trim(p_code)) < 8 or length(trim(p_code)) > 32 then
+    return jsonb_build_object('valid',false);
+  end if;
+  select * into v_cert
+  from public.academy_certificates
+  where certificate_code = upper(trim(p_code))
+    and revoked_at is null;
+  if not found then return jsonb_build_object('valid',false); end if;
+  return jsonb_build_object(
+    'valid',true,
+    'certificate_code',v_cert.certificate_code,
+    'track',v_cert.track,
+    'score',v_cert.score,
+    'issued_at',v_cert.issued_at
+  );
+end;
+$$;
+revoke all on function private.verify_academy_certificate(text) from public;
+grant execute on function private.verify_academy_certificate(text) to anon, authenticated;
+
+create or replace function public.verify_academy_certificate(p_code text)
+returns jsonb
+language sql
+security invoker
+set search_path = ''
+as $$ select private.verify_academy_certificate(p_code); $$;
+revoke all on function public.verify_academy_certificate(text) from public;
+grant execute on function public.verify_academy_certificate(text) to anon, authenticated;
