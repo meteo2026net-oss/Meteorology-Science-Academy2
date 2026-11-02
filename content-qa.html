@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#081321"><title>تدقيق جودة المحتوى | أكاديمية علوم الأرصاد</title>
+<style>
+:root{--bg:#081321;--p:#102137;--p2:#142b42;--line:#29445d;--txt:#edf6ff;--muted:#a9bfd2;--cyan:#42d6e8;--gold:#f4c45e;--green:#55d6a0;--red:#ff7777}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#173651,transparent 38%),var(--bg);color:var(--txt);font:15px/1.85 Tahoma,Arial,sans-serif}
+.wrap{max-width:1180px;margin:auto;padding:22px}header,.row,.actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.panel,.stat,.issue{background:var(--p);border:1px solid var(--line);border-radius:15px;padding:16px;margin:13px 0}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,var(--cyan),#2879b8);display:grid;place-items:center;color:#06202b;font-size:22px}
+.muted,small{color:var(--muted)}.eyebrow{color:var(--cyan);font-size:13px;font-weight:bold}
+.btn,button{font:inherit;border:1px solid var(--line);border-radius:9px;padding:8px 13px;background:var(--p2);color:var(--txt);cursor:pointer;text-decoration:none}
+.primary{background:var(--cyan);color:#05202a;border-color:var(--cyan);font-weight:bold}
+input,select{font:inherit;color:var(--txt);background:#091827;border:1px solid var(--line);border-radius:9px;padding:10px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat b{display:block;font-size:27px;color:var(--gold)}
+.status{padding:10px 12px;background:#0b1928;border-right:3px solid var(--cyan);border-radius:8px;margin:10px 0}
+.issue{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start}.issue p{margin:3px 0;color:var(--muted)}
+.badge{border:1px solid #824747;color:#ffaaaa;border-radius:20px;padding:2px 9px;font-size:12px}
+.hidden{display:none!important}.filters{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}.filters input{flex:1;min-width:190px}
+@media(max-width:760px){.wrap{padding:12px}.grid{grid-template-columns:repeat(2,1fr)}.issue{grid-template-columns:1fr}}
+</style></head>
+<body><main class="wrap">
+<header><div class="brand"><div class="logo">✓</div><div><b>مركز تدقيق جودة المحتوى</b><div class="muted">Content Quality Assurance · Read-only</div></div></div>
+<div class="actions"><a class="btn" href="admin.html">الإدارة</a><a class="btn" href="content-review.html">مراجعة المحتوى</a></div></header>
+<section class="panel"><div class="eyebrow">فحص آلي قبل المراجعة العلمية والنشر</div><h1>تقرير جودة الدروس</h1>
+<p class="muted">يرصد هذا التقرير النواقص البنيوية الشائعة والتكرارات. لا يصدر حكماً علمياً على صحة المعلومات، ولا ينشر أو يغيّر أي سجل. الحد الأقصى المعروض 300 مشكلة، بينما يعرض الملخص العدد الإجمالي.</p>
+<div class="actions"><button id="connect" class="primary">تسجيل الدخول وفحص الجودة</button><button id="refresh" disabled>إعادة الفحص</button><button id="export" disabled>تصدير CSV</button><button id="logout" class="hidden">تسجيل الخروج</button></div>
+<div id="status" class="status">أدخل بيانات حساب المدير للبدء.</div>
+<div id="credentials" class="grid" style="grid-template-columns:repeat(2,1fr)">
+<label>رابط Supabase<input id="url" type="url" style="width:100%" placeholder="https://project.supabase.co"></label>
+<label>مفتاح Publishable<input id="key" type="password" style="width:100%" autocomplete="off"></label>
+<label>البريد الإلكتروني<input id="email" type="email" style="width:100%" autocomplete="username"></label>
+<label>كلمة المرور<input id="password" type="password" style="width:100%" autocomplete="current-password"></label>
+</div></section>
+<section id="report" class="hidden">
+<div class="grid">
+<div class="stat"><b id="total">0</b>إجمالي الدروس</div><div class="stat"><b id="published">0</b>منشور</div><div class="stat"><b id="drafts">0</b>مسودة</div><div class="stat"><b id="issues">0</b>مشكلة مرصودة</div>
+</div>
+<div class="panel"><div class="row"><h2>المشكلات المكتشفة</h2><span id="shown" class="muted"></span></div>
+<div class="filters"><input id="search" placeholder="ابحث بعنوان الدرس أو المقرر"><select id="kind"><option value="">كل أنواع المشكلات</option></select></div>
+<div id="list"></div><p id="empty" class="muted hidden">لا توجد مشكلات تطابق عوامل التصفية.</p></div>
+</section>
+<footer class="muted" style="text-align:center;padding:18px">أكاديمية علوم الأرصاد الجوية · فحص للقراءة فقط</footer>
+</main>
+<script type="module">
+import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm";
+import{SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY}from"./supabase-config.js";
+const $=id=>document.getElementById(id),STORE="msa-supabase-config-v1";
+let db=null,rows=[],lastSummary=null;
+const labels={empty_title:"عنوان فارغ",empty_slug:"معرّف فارغ",empty_summary:"ملخص ناقص",empty_content:"محتوى فارغ",missing_objectives:"أهداف تعلم ناقصة",invalid_duration:"مدة غير صحيحة",missing_hierarchy:"ربط هرمي ناقص",duplicate_slug:"معرّف مكرر"};
+function status(s,bad=false){$("status").textContent=s;$("status").style.borderRightColor=bad?"var(--red)":"var(--cyan)"}
+function render(){
+ const q=$("search").value.trim().toLowerCase(),kind=$("kind").value;
+ const filtered=rows.filter(x=>(!kind||x.code===kind)&&(!q||[x.lesson_title,x.course_title,x.detail].join(" ").toLowerCase().includes(q)));
+ $("list").replaceChildren();$("shown").textContent="عرض "+filtered.length+" من "+rows.length+" مشكلة";
+ for(const x of filtered){const card=document.createElement("article");card.className="issue";
+ const body=document.createElement("div"),title=document.createElement("b"),p=document.createElement("p"),meta=document.createElement("small");
+ title.textContent=x.lesson_title||"درس بلا عنوان";p.textContent=x.detail;meta.textContent=(x.course_title||x.course_id||"مقرر غير معروف")+" · "+x.lesson_id;
+ body.append(title,p,meta);const badge=document.createElement("span");badge.className="badge";badge.textContent=labels[x.code]||x.code;card.append(body,badge);$("list").append(card)}
+ $("empty").classList.toggle("hidden",filtered.length>0);
+}
+async function run(){
+ $("refresh").disabled=true;status("جارٍ تشغيل الفحص…");
+ const {data,error}=await db.rpc("get_academy_content_quality_report");
+ if(error){status("تعذر إنشاء التقرير: "+error.message,true);$("refresh").disabled=false;return}
+ lastSummary=data.summary||{};rows=Array.isArray(data.issues)?data.issues:[];
+ $("total").textContent=lastSummary.total_lessons??0;$("published").textContent=lastSummary.published_lessons??0;
+ $("drafts").textContent=lastSummary.draft_lessons??0;$("issues").textContent=lastSummary.issues_total??0;
+ const select=$("kind");select.replaceChildren();const all=document.createElement("option");all.value="";all.textContent="كل أنواع المشكلات";select.append(all);
+ for(const code of [...new Set(rows.map(x=>x.code))]){const o=document.createElement("option");o.value=code;o.textContent=labels[code]||code;select.append(o)}
+ $("report").classList.remove("hidden");$("refresh").disabled=false;$("export").disabled=rows.length===0;
+ $("shown").textContent="تاريخ التقرير: "+new Date(data.generated_at||Date.now()).toLocaleString("ar");
+ render();status("اكتمل الفحص دون تعديل البيانات. "+rows.length+" مشكلة ضمن التفاصيل المعروضة.");
+}
+async function connect(){
+ const url=$("url").value.trim(),key=$("key").value.trim(),email=$("email").value.trim(),password=$("password").value;
+ if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)||!key||!email||!password){status("أكمل بيانات الاتصال الأربع.",true);return}
+ localStorage.setItem(STORE,JSON.stringify({url,key}));db=createClient(url,key);
+ status("جارٍ التحقق من حساب المدير…");
+ const {error}=await db.auth.signInWithPassword({email,password});
+ if(error){status("فشل تسجيل الدخول: "+error.message,true);return}
+ const {data:{user}}=await db.auth.getUser();
+ const {data:profile,error:pe}=await db.from("academy_profiles").select("role").eq("id",user.id).maybeSingle();
+ if(pe||profile?.role!=="admin"){await db.auth.signOut();status("تم رفض الوصول: يلزم حساب مدير.",true);return}
+ $("logout").classList.remove("hidden");await run();
+}
+function csv(){
+ const cols=["lesson_id","course_id","course_title","lesson_title","code","detail"];
+ const quote=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
+ const lines=[cols.map(quote).join(","),...rows.map(r=>cols.map(k=>quote(r[k])).join(","))];
+ const blob=new Blob(["\uFEFF"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="academy-content-quality.csv";a.click();URL.revokeObjectURL(a.href);
+}
+$("connect").onclick=connect;$("refresh").onclick=run;$("export").onclick=csv;
+$("search").oninput=render;$("kind").onchange=render;
+$("logout").onclick=async()=>{await db.auth.signOut();db=null;rows=[];$("report").classList.add("hidden");$("logout").classList.add("hidden");status("تم تسجيل الخروج.")};
+try{const saved=JSON.parse(localStorage.getItem(STORE)||"{}");$("url").value=saved.url||SUPABASE_URL||"";$("key").value=saved.key||SUPABASE_PUBLISHABLE_KEY||""}catch{$("url").value=SUPABASE_URL||"";$("key").value=SUPABASE_PUBLISHABLE_KEY||""}
+</script></body></html>
