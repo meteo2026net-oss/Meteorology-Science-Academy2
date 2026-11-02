@@ -14,14 +14,11 @@ alter table public.academy_lab_attempts enable row level security;
 revoke all on table public.academy_lab_attempts from anon, authenticated;
 grant select, insert on table public.academy_lab_attempts to authenticated;
 drop policy if exists "students read own lab attempts" on public.academy_lab_attempts;
-create policy "students read own lab attempts" on public.academy_lab_attempts
-for select to authenticated using ((select auth.uid()) = user_id);
-drop policy if exists "students insert own lab attempts" on public.academy_lab_attempts;
-create policy "students insert own lab attempts" on public.academy_lab_attempts
-for insert to authenticated with check ((select auth.uid()) = user_id);
 drop policy if exists "admins read all lab attempts" on public.academy_lab_attempts;
-create policy "admins read all lab attempts" on public.academy_lab_attempts
-for select to authenticated using (private.is_academy_admin());
+drop policy if exists "students and admins read lab attempts" on public.academy_lab_attempts;
+create policy "students and admins read lab attempts" on public.academy_lab_attempts
+for select to authenticated
+using ((select auth.uid()) = user_id or private.is_academy_admin());
 create index if not exists academy_lab_attempts_user_created_idx
 on public.academy_lab_attempts(user_id, created_at desc);
 comment on table public.academy_lab_attempts is 'Student-submitted records from educational meteorology simulations; students can insert and read only their own records, admins can read all.';
