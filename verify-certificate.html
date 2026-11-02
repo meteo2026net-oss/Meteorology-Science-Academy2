@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#081321"><title>التحقق من الشهادات | أكاديمية علوم الأرصاد</title>
+<style>
+:root{--bg:#081321;--p:#102137;--line:#29445d;--txt:#edf6ff;--muted:#a9bfd2;--cyan:#42d6e8;--green:#55d6a0;--red:#ff7777}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 80% 0,#173651,transparent 38%),var(--bg);color:var(--txt);font:16px/1.9 Tahoma,Arial,sans-serif}.wrap{max-width:760px;margin:auto;padding:24px}.panel{background:var(--p);border:1px solid var(--line);border-radius:18px;padding:22px;margin:18px 0}.brand{display:flex;align-items:center;gap:12px}.logo{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--cyan),#2879b8);display:grid;place-items:center;color:#06202b;font-size:24px}h1{font-size:23px}h2{font-size:20px}.muted{color:var(--muted)}input,button,a{font:inherit;border-radius:10px;padding:11px 14px}input{width:100%;background:#09192a;border:1px solid var(--line);color:var(--txt);margin:10px 0}button,.btn{border:1px solid var(--line);background:#17324a;color:var(--txt);cursor:pointer;text-decoration:none;display:inline-block}.primary{background:#147da0;border-color:#259bb9}.status{margin-top:14px;padding:12px;border-radius:12px;background:#0b1c2c;border:1px solid var(--line)}.good{color:var(--green)}.bad{color:var(--red)}.hidden{display:none}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.stat{padding:12px;border:1px solid var(--line);border-radius:12px}.stat b{display:block;font-size:20px}
+</style>
+</head>
+<body><main class="wrap">
+<header class="brand"><div class="logo">✓</div><div><b>أكاديمية علوم الأرصاد الجوية</b><div class="muted">بوابة التحقق من الشهادات</div></div></header>
+<section class="panel"><h1>التحقق من شهادة الإتمام</h1><p class="muted">أدخل رمز الشهادة للتحقق من أنها صادرة عن نظام الأكاديمية ولم يتم إلغاؤها. تعرض هذه الصفحة بيانات تحقق محدودة ولا تكشف معلومات الحساب.</p>
+<label for="code">رمز الشهادة</label><input id="code" autocomplete="off" maxlength="32" placeholder="مثال: 7F2A9C...">
+<button class="primary" id="verify">تحقق من الشهادة</button><div id="status" class="status" role="status">أدخل رمز الشهادة ثم اضغط تحقق.</div></section>
+<section id="result" class="panel hidden"><h2 class="good">الشهادة صحيحة</h2><div class="grid"><div class="stat"><b id="track">—</b>المسار</div><div class="stat"><b id="score">—</b>نتيجة الاجتياز</div><div class="stat"><b id="date">—</b>تاريخ الإصدار</div></div><p class="muted">رقم الشهادة: <b id="serial"></b></p><p class="muted">هذه شهادة إتمام تعليمية داخلية، وليست اعتماداً أكاديمياً أو مهنياً رسمياً.</p></section>
+<footer class="muted"><a class="btn" href="index.html">العودة إلى الأكاديمية</a> <a class="btn" href="exams.html">مركز الاختبارات</a></footer>
+</main>
+<script type="module">
+import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
+const saved=(()=>{try{return JSON.parse(localStorage.getItem("msa-supabase-config-v1")||"{}")}catch{return{}}})();
+const client=createClient(saved.url||SUPABASE_URL,saved.key||SUPABASE_PUBLISHABLE_KEY);
+const $=id=>document.getElementById(id);
+$("verify").onclick=async()=>{
+ const code=$("code").value.trim().toUpperCase();$("result").classList.add("hidden");
+ if(code.length<8){$("status").textContent="أدخل رمزاً صحيح التنسيق.";return}
+ $("verify").disabled=true;$("status").textContent="جارٍ التحقق…";
+ try{
+  const{data,error}=await client.rpc("verify_academy_certificate",{p_code:code});
+  if(error)throw error;
+  if(!data?.valid){$("status").textContent="لم نعثر على شهادة صالحة بهذا الرمز، أو أن الشهادة أُلغيت.";return}
+  $("track").textContent=({math:"الرياضيات",physics:"الفيزياء"}[data.track]||data.track);
+  $("score").textContent=Number(data.score)+"%";
+  $("date").textContent=new Date(data.issued_at).toLocaleDateString("ar");
+  $("serial").textContent=data.certificate_code;
+  $("status").textContent="تم التحقق بنجاح من سجل الأكاديمية.";
+  $("result").classList.remove("hidden");
+ }catch(e){$("status").textContent="تعذر إجراء التحقق: "+e.message}
+ finally{$("verify").disabled=false}
+};
+$("code").addEventListener("keydown",e=>{if(e.key==="Enter")$("verify").click()});
+</script></body></html>
