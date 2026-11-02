@@ -88,7 +88,7 @@ window.addEventListener("msa-exam-result",async event=>{
    user_id:user.id,track:r.track,level:r.level,score:r.score,
    correct_count:r.correct,total_count:r.total,passed:r.pass,answers:r.answers
   });
-  if(error)console.warn("تعذر مزامنة نتيجة الاختبار:",error.message);else await loadRemoteHistory();
+  if(error)console.warn("تعذر مزامنة نتيجة الاختبار:",error.message);else{try{const local=JSON.parse(localStorage.getItem("msa-exam-results-v1")||"[]");localStorage.setItem("msa-exam-results-v1",JSON.stringify(local.filter(x=>x.date!==r.date)))}catch{}await loadRemoteHistory()}
  }catch(error){console.warn("تعذر الاتصال بحساب الأكاديمية:",error);}
 });
 loadRemoteHistory();
