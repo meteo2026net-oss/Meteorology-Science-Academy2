@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#081321"><title>فحص الأكاديمية | أكاديمية علوم الأرصاد</title>
+<style>
+:root{--bg:#081321;--p:#102137;--p2:#142b42;--line:#29445d;--txt:#edf6ff;--muted:#a9bfd2;--cyan:#42d6e8;--gold:#f4c45e;--green:#55d6a0;--red:#ff7777;--warn:#f4c45e}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#173651,transparent 38%),var(--bg);color:var(--txt);font:15px/1.85 Tahoma,Arial,sans-serif}
+.wrap{max-width:1120px;margin:auto;padding:22px}header,.actions,.row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--cyan),#2879b8);display:grid;place-items:center;color:#06202b;font-size:23px}
+.panel{background:var(--p);border:1px solid var(--line);border-radius:16px;padding:18px;margin:14px 0}.muted{color:var(--muted)}.eyebrow{color:var(--cyan);font-weight:bold;font-size:13px}
+.btn,button{font:inherit;border:1px solid var(--line);border-radius:9px;padding:8px 13px;background:var(--p2);color:var(--txt);cursor:pointer;text-decoration:none}.primary{background:var(--cyan);color:#05202a;border-color:var(--cyan);font-weight:bold}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{display:block;color:var(--muted);font-size:13px}
+input{width:100%;padding:11px;border-radius:9px;border:1px solid var(--line);background:#091827;color:var(--txt);font:inherit;margin-top:5px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.check{background:#0b1b2c;border:1px solid var(--line);border-radius:12px;padding:13px;min-height:118px}
+.state{display:inline-block;border-radius:20px;padding:2px 9px;font-size:11px;border:1px solid var(--line);color:var(--muted)}
+.state.ok{color:var(--green);border-color:#397c64;background:#55d6a011}.state.bad{color:var(--red);border-color:#824747;background:#ff777711}.state.warn{color:var(--warn);border-color:#806c3a;background:#f4c45e11}
+.value{font-size:24px;color:var(--gold);font-weight:bold}.status{padding:11px;border-radius:9px;background:#0b1928;border-right:3px solid var(--cyan);margin:10px 0}
+.hidden{display:none!important}.bar{height:8px;background:#26394d;border-radius:20px;overflow:hidden}.bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--green))}
+small{color:var(--muted)}code{direction:ltr;display:inline-block;color:var(--cyan)}
+@media(max-width:760px){.wrap{padding:12px}.fields,.grid{grid-template-columns:1fr}.panel{padding:14px}}
+</style>
+</head>
+<body><main class="wrap">
+<header><div class="brand"><div class="logo">⌁</div><div><b>مركز فحص الأكاديمية</b><div class="muted">تشخيص اتصال قاعدة البيانات وسلامة مكونات المنصة</div></div></div>
+<div class="actions"><a class="btn" href="index.html">الواجهة التعليمية</a><a class="btn" href="admin.html">لوحة الإدارة</a></div></header>
+<section class="panel"><div class="eyebrow">أداة تشخيص للقراءة فقط</div><h1>فحص جاهزية النظام</h1><p class="muted">تتحقق الأداة من إعداد الاتصال، وصلاحية المدير، والجداول الأساسية، وتسلسل الفصول والوحدات، ومكتبة الملفات. لا تنشئ أو تعدّل أو تحذف أي بيانات.</p>
+<div class="fields"><label>رابط Supabase<input id="url" type="url" placeholder="https://project.supabase.co"></label><label>مفتاح Publishable<input id="key" type="password" autocomplete="off" placeholder="sb_publishable_..."></label><label>البريد الإلكتروني للمدير<input id="email" type="email" autocomplete="username"></label><label>كلمة المرور<input id="password" type="password" autocomplete="current-password"></label></div>
+<div class="actions" style="margin-top:12px"><button class="primary" id="connect">اتصال وفحص النظام</button><button id="rerun" disabled>إعادة الفحص</button><button id="logout" class="hidden">تسجيل الخروج</button></div><div class="status" id="status">أدخل بيانات اتصال مشروع Supabase وحساب المدير لبدء الفحص.</div></section>
+<section id="results" class="hidden">
+<div class="panel"><div class="row"><h2>ملخص الفحص</h2><span class="state" id="overall">بانتظار الفحص</span></div><div class="value" id="score">—</div><small>عدد الفحوصات الناجحة من إجمالي الفحوصات</small><div class="bar" style="margin-top:10px"><span id="scorebar"></span></div><p class="muted" id="summary"></p></div>
+<h2>فحوصات البنية والبيانات</h2><div class="grid" id="checks"></div>
+<div class="panel"><h2>أعداد المحتوى</h2><div class="grid" id="counts"></div><p class="muted">الأعداد تُقرأ من قاعدة البيانات بحساب المدير الحالي. لا يتم عرض سجلات الطلاب أو بياناتهم الشخصية.</p></div>
+<div class="panel"><h2>ما الذي يجب إصلاحه؟</h2><div id="actionsList" class="muted">سيظهر هنا ملخص الخطوات عند انتهاء الفحص.</div></div>
+</section>
+<footer class="muted" style="text-align:center;padding:20px">أكاديمية علوم الأرصاد الجوية · Diagnostics · Read-only</footer>
+</main>
+<script type="module">
+import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm";
+import{SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY}from"./supabase-config.js";
+const $=id=>document.getElementById(id),STORE="msa-supabase-config-v1";
+let db=null,admin=false,lastChecks=[];
+const tables=[
+ ["ملفات الحسابات","academy_profiles","id"],
+ ["المقررات","academy_courses","id"],
+ ["الفصول","academy_chapters","id"],
+ ["الوحدات","academy_units","id"],
+ ["الدروس","academy_lessons","id"],
+ ["تقدم الطلاب","academy_lesson_progress","user_id"],
+ ["محاولات الاختبارات","academy_exam_attempts","id"]
+];
+function setStatus(message,bad=false){$("status").textContent=message;$("status").style.borderRightColor=bad?"var(--red)":"var(--cyan)"}
+function card(title,state,detail){return {title,state,detail}}
+function showChecks(items){lastChecks=items;$("checks").replaceChildren();for(const item of items){const el=document.createElement("article");el.className="check";const h=document.createElement("b");h.textContent=item.title;const badge=document.createElement("span");badge.className="state "+(item.state==="ok"?"ok":item.state==="bad"?"bad":"warn");badge.textContent=item.state==="ok"?"سليم":item.state==="bad"?"فشل":"تحذير";badge.style.marginRight="7px";const p=document.createElement("p");p.className="muted";p.textContent=item.detail;el.append(h,badge,p);$("checks").append(el)}}
+async function runChecks(){
+ if(!db||!admin){setStatus("يجب تسجيل الدخول بحساب مدير قبل الفحص.",true);return}
+ $("rerun").disabled=true;setStatus("جارٍ فحص مكونات المنصة…");
+ const checks=[],counts={};
+ const push=(title,state,detail)=>checks.push(card(title,state,detail));
+ try{
+  const {data:{user},error:authError}=await db.auth.getUser();
+  if(authError||!user){push("جلسة المصادقة","bad","لم يتم العثور على جلسة مستخدم صالحة.");admin=false}
+  else push("جلسة المصادقة","ok","تم التحقق من جلسة المستخدم.");
+  const {data:profile,error:profileError}=await db.from("academy_profiles").select("role").eq("id",user?.id||"").maybeSingle();
+  admin=!profileError&&profile?.role==="admin";
+  push("صلاحية المدير",admin?"ok":"bad",admin?"الحساب يحمل دور admin.":"الحساب لا يحمل دور admin أو تعذر قراءة ملفه.");
+  for(const [label,table,column] of tables){
+   const {count,error}=await db.from(table).select(column,{count:"exact",head:true});
+   if(error){push("جدول "+label,"bad","تعذر الوصول: "+error.message);counts[table]=null}
+   else{push("جدول "+label,"ok","الجدول متاح. عدد السجلات: "+(count??0));counts[table]=count??0}
+  }
+  const {data:bucket,error:bucketError}=await db.storage.getBucket("academy-assets");
+  if(bucketError)push("مخزن الملفات academy-assets","warn","لم يمكن التحقق من المخزن: "+bucketError.message+"؛ راجع تنفيذ supabase/storage.sql.")
+  else push("مخزن الملفات academy-assets","ok","المخزن موجود. حد الملف: "+Math.round((bucket.file_size_limit||0)/1024/1024)+" MB.");
+  const {error:lessonShapeError}=await db.from("academy_lessons").select("id,course_id,slug,title,summary,content,published,sort_order,chapter_id,unit_id,level,estimated_minutes,learning_objectives").limit(1);
+  push("بنية الدرس وحقول CMS",lessonShapeError?"bad":"ok",lessonShapeError?"حقول الدرس غير مكتملة أو ترحيل CMS لم ينفذ: "+lessonShapeError.message:"حقول الدرس الأساسية وحقول CMS متاحة.");
+  const {error:hierarchyError}=await db.from("academy_lessons").select("chapter_id,unit_id").limit(1);
+  push("ربط الدروس بالفصول والوحدات",hierarchyError?"bad":"ok",hierarchyError?"تعذر التحقق من حقول الهيكل الهرمي: "+hierarchyError.message:"حقول chapter_id وunit_id متاحة.");
+  const passed=checks.filter(x=>x.state==="ok").length,total=checks.length;
+  $("results").classList.remove("hidden");$("score").textContent=passed+" / "+total;
+  $("scorebar").style.width=(total?passed/total*100:0)+"%";
+  $("overall").className="state "+(passed===total?"ok":checks.some(x=>x.state==="bad")?"bad":"warn");
+  $("overall").textContent=passed===total?"جاهز":checks.some(x=>x.state==="bad")?"يحتاج إصلاحاً":"جاهزية جزئية";
+  $("summary").textContent="نجح "+passed+" فحصاً من "+total+". الفحوصات لا تغيّر قاعدة البيانات.";
+  $("counts").replaceChildren();
+  for(const [label,table] of [["المقررات","academy_courses"],["الفصول","academy_chapters"],["الوحدات","academy_units"],["الدروس","academy_lessons"],["الطلاب","academy_profiles"],["محاولات الاختبار","academy_exam_attempts"]]){
+   const el=document.createElement("article");el.className="check";const h=document.createElement("b");h.textContent=label;const n=document.createElement("div");n.className="value";n.textContent=counts[table]===null?"—":String(counts[table]??0);el.append(h,n);$("counts").append(el)
+  }
+  const failures=checks.filter(x=>x.state!=="ok");$("actionsList").replaceChildren();
+  if(!failures.length){$("actionsList").textContent="لا توجد مشكلات مكتشفة في الفحوصات الحالية. استمر في اختبار وظائف المحرر والنشر والطالب."}
+  else for(const f of failures){const p=document.createElement("p");p.textContent="• "+f.title+": "+f.detail;$("actionsList").append(p)}
+  showChecks(checks);setStatus("اكتمل الفحص. راجع النتائج والتوصيات أدناه.");$("rerun").disabled=false;
+ }catch(e){setStatus("توقف الفحص بسبب خطأ غير متوقع: "+(e?.message||e),true);$("rerun").disabled=false}
+}
+async function connect(){
+ const url=$("url").value.trim(),key=$("key").value.trim(),email=$("email").value.trim(),password=$("password").value;
+ if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)||!key||!email||!password){setStatus("أكمل رابط المشروع ومفتاح Publishable والبريد وكلمة المرور.",true);return}
+ localStorage.setItem(STORE,JSON.stringify({url,key}));
+ db=createClient(url,key);
+ setStatus("جارٍ تسجيل الدخول والتحقق من الصلاحية…");
+ const {error}=await db.auth.signInWithPassword({email,password});
+ if(error){setStatus("فشل تسجيل الدخول: "+error.message,true);return}
+ const {data:{user}}=await db.auth.getUser();
+ const {data:profile,error:profileError}=await db.from("academy_profiles").select("role").eq("id",user.id).maybeSingle();
+ if(profileError||profile?.role!=="admin"){await db.auth.signOut();setStatus("تم رفض الدخول: يلزم حساب يحمل دور admin.",true);return}
+ admin=true;$("logout").classList.remove("hidden");await runChecks();
+}
+$("connect").onclick=connect;$("rerun").onclick=runChecks;
+$("logout").onclick=async()=>{if(db)await db.auth.signOut();admin=false;db=null;$("results").classList.add("hidden");$("logout").classList.add("hidden");setStatus("تم تسجيل الخروج.")};
+try{const saved=JSON.parse(localStorage.getItem(STORE)||"{}");$("url").value=saved.url||SUPABASE_URL||"";$("key").value=saved.key||SUPABASE_PUBLISHABLE_KEY||""}catch{$("url").value=SUPABASE_URL||"";$("key").value=SUPABASE_PUBLISHABLE_KEY||""}
+</script>
+</body></html>
