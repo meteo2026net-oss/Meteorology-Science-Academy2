@@ -1,5 +1,5 @@
 // Public browser configuration for the academy.
-// Supabase Publishable keys are intended for client-side use.
-// Never put service_role keys or other secrets in this file.
-export const SUPABASE_URL = "";
-export const SUPABASE_PUBLISHABLE_KEY = "";
+// Publishable keys are designed for client-side use.
+// Never place a Supabase secret or service_role key in this file.
+export const SUPABASE_URL = "https://xfgsmztjxbiboaqsafqb.supabase.co";
+export const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_8keAnBnVzcVWY7cDGDrlHQ_JWIyYOVO";
