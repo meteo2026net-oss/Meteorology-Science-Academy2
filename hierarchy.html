@@ -21,7 +21,7 @@
 <script type="module">
 import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm";
 const $=id=>document.getElementById(id),STORE="msa-supabase-config-v1";
-let db=null,chapters=[],units=[],lessons=[];
+let db=null,chapters=[],units=[],lessons=[],moveUnits=[];
 const say=(s,bad=false)=>{$("status").textContent=s;$("status").style.borderColor=bad?"#ff7777":"#42d6e8"};
 async function connect(){
  const url=$("url").value.trim(),key=$("key").value.trim();
@@ -65,7 +65,7 @@ async function loadUnits(){
 $("connect").onclick=()=>connect().catch(e=>say(e.message,true));
 $("course").onchange=()=>loadAll();
 $("chapter").onchange=()=>loadUnits();
-$("moveChapter").onchange=async()=>{const id=$("moveChapter").value;const{data,error}=id?await db.from("academy_units").select("id,title").eq("chapter_id",id).order("sort_order"):{data:[],error:null};if(error){say(error.message,true);return}$("moveUnit").innerHTML='<option value="">بدون وحدة</option>'+(data||[]).map(x=>'<option value="'+x.id+'">'+x.title+'</option>').join("")};
+$("moveChapter").onchange=async()=>{const id=$("moveChapter").value;const{data,error}=id?await db.from("academy_units").select("id,title").eq("chapter_id",id).order("sort_order"):{data:[],error:null};if(error){say(error.message,true);return}moveUnits=data||[];$("moveUnit").innerHTML='<option value="">بدون وحدة</option>'+(data||[]).map(x=>'<option value="'+x.id+'">'+x.title+'</option>').join("")};
 $("addChapter").onclick=async()=>{const title=$("chapterName").value.trim(),course=$("course").value;if(!title||!course)return;const{error}=await db.from("academy_chapters").insert({course_id:course,title,sort_order:chapters.length+1});if(error){say(error.message,true);return}$("chapterName").value="";say("تمت إضافة الفصل.");await loadAll()};
 $("addUnit").onclick=async()=>{const title=$("unitName").value.trim(),chapter=$("chapter").value;if(!title||!chapter){say("أدخل اسم الوحدة واختر فصلاً.",true);return}const{error}=await db.from("academy_units").insert({chapter_id:chapter,title,sort_order:units.length+1});if(error){say(error.message,true);return}$("unitName").value="";say("تمت إضافة الوحدة.");await loadUnits()};
 $("chapters").onclick=async e=>{
@@ -83,7 +83,7 @@ $("units").onclick=async e=>{
 $("moveLesson").onclick=async()=>{
  const lesson=lessons.find(x=>x.id===$("lesson").value),chapter=chapters.find(x=>x.id===$("moveChapter").value),unit=$("moveUnit").value;
  if(!lesson){say("اختر درساً.",true);return}
- const row={chapter_id:chapter?.id||null,unit_id:unit||null,chapter_title:chapter?.title||"الفصل الأول",unit_title:units.find(x=>x.id===unit)?.title||""};
+ const row={chapter_id:chapter?.id||null,unit_id:unit||null,chapter_title:chapter?.title||"الفصل الأول",unit_title:moveUnits.find(x=>x.id===unit)?.title||""};
  const{error}=await db.from("academy_lessons").update(row).eq("id",lesson.id);
  if(error){say(error.message,true);return}
  say("تم نقل الدرس إلى الفصل والوحدة المحددين.");await loadAll();
