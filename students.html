@@ -45,7 +45,39 @@ function renderDetails(id){const s=students.find(x=>x.id===id);if(!s)return;cons
 const studentCerts=certificates.filter(x=>x.user_id===id&&!x.revoked_at);$("dCertificates").textContent=studentCerts.length;const progressHost=$("dProgress");progressHost.replaceChildren();if(!p.length)progressHost.textContent="لم يسجل هذا الطالب دروساً مكتملة.";else{const list=el("ul");for(const row of p){const title=row.academy_lessons?.title||"درس";list.append(el("li",title+" · "+new Date(row.updated_at).toLocaleDateString("ar")))}progressHost.append(list)}
 const examHost=$("dExams");examHost.replaceChildren();if(!a.length)examHost.textContent="لا توجد محاولات اختبار.";else{const table=el("table"),body=el("tbody");for(const x of a.slice(0,20)){const tr=el("tr");tr.append(el("td",x.exam_title||({math:"الرياضيات",physics:"الفيزياء",all:"مختلط"}[x.track]||x.track)),el("td",Number(x.score)+"%"),el("td",x.passed?"مجتاز":"لم يجتز"),el("td",new Date(x.created_at).toLocaleString("ar")));body.append(tr)}table.append(body);examHost.append(table)}
 renderObjectiveMastery(id);$("details").classList.remove("hidden");$("details").scrollIntoView({behavior:"smooth",block:"start"})}
-async function renderObjectiveMastery(userId){const host=$("dMastery");host.textContent="جارٍ تحميل تحليل المهارات…";const {data,error}=await db.rpc("get_academy_objective_mastery",{p_user_id:userId});host.replaceChildren();if(error){host.textContent="تعذر تحميل تحليل المهارات: "+error.message;return}const rows=Array.isArray(data)?data:[];if(!rows.length){host.textContent="لا توجد إجابات اختبار مصححة بعد. سيظهر التحليل تلقائياً بعد أولى المحاولات.";return}const table=el("table"),head=el("thead"),hr=el("tr");["الهدف / المهارة","الإجابات الصحيحة","عدد الإجابات","الدقة","التقييم"].forEach(x=>hr.append(el("th",x)));head.append(hr);const body=el("tbody");for(const row of rows){const tr=el("tr");const band=row.level==="strong"?"إتقان مبدئي جيد":row.level==="developing"?"قيد التطور":row.level==="needs_support"?"يحتاج إلى دعم":"عينة غير كافية";tr.append(el("td",row.objective),el("td",String(row.correct)),el("td",String(row.responses)+" · "+String(row.attempts)+" محاولة"),el("td",row.accuracy+"%"),el("td",band));body.append(tr)}table.append(head,body);host.append(table);}
+async function renderObjectiveMastery(userId){
+ const host=$("dMastery");host.textContent="جارٍ تحميل تحليل المهارات…";
+ const [questionResult,lessonResult]=await Promise.all([
+  db.rpc("get_academy_objective_mastery",{p_user_id:userId}),
+  db.rpc("get_academy_lesson_objective_mastery",{p_user_id:userId})
+ ]);
+ host.replaceChildren();
+ if(questionResult.error&&lessonResult.error){host.textContent="تعذر تحميل تحليلات الإتقان: "+questionResult.error.message;return}
+ const heading=el("h4","أولاً: تحليل إجابات بنك الأسئلة");
+ host.append(heading);
+ const qRows=Array.isArray(questionResult.data)?questionResult.data:[];
+ if(questionResult.error){host.append(el("p","تعذر تحميل تحليل الأسئلة: "+questionResult.error.message,"muted"))}
+ else if(!qRows.length){host.append(el("p","لا توجد إجابات اختبار مصححة كافية بعد.","muted"))}
+ else{
+  const table=el("table"),head=el("thead"),hr=el("tr");
+  ["الهدف / المهارة","الإجابات الصحيحة","عدد الإجابات","الدقة","التقييم"].forEach(x=>hr.append(el("th",x)));head.append(hr);
+  const body=el("tbody");
+  for(const row of qRows){const tr=el("tr"),band=row.level==="strong"?"إتقان مبدئي جيد":row.level==="developing"?"قيد التطور":row.level==="needs_support"?"يحتاج إلى دعم":"عينة غير كافية";tr.append(el("td",row.objective),el("td",String(row.correct)),el("td",String(row.responses)+" · "+String(row.attempts)+" محاولة"),el("td",row.accuracy+"%"),el("td",band));body.append(tr)}
+  table.append(head,body);host.append(table);
+ }
+ host.append(el("h4","ثانياً: إتقان أهداف الدروس"));
+ const lRows=Array.isArray(lessonResult.data)?lessonResult.data:[];
+ if(lessonResult.error){host.append(el("p","تعذر تحميل نتائج الدروس: "+lessonResult.error.message,"muted"))}
+ else if(!lRows.length){host.append(el("p","لا توجد نتائج دروس مقيمة مرتبطة بالأهداف حتى الآن.","muted"))}
+ else{
+  const table=el("table"),head=el("thead"),hr=el("tr");
+  ["المجال والهدف","دروس مرتبطة","دروس بنتائج","متوسط الدرجات","التقييم"].forEach(x=>hr.append(el("th",x)));head.append(hr);
+  const body=el("tbody"),labels={mastered:"متقن",developing:"في طور التطور",needs_practice:"يحتاج إلى تدريب",insufficient_evidence:"أدلة غير كافية"};
+  for(const row of lRows){const tr=el("tr"),score=row.average_score===null?"—":Number(row.average_score).toFixed(1)+"%";tr.append(el("td",row.domain+" · "+row.objective_title),el("td",String(row.mapped_lessons)),el("td",String(row.attempted_lessons)),el("td",score),el("td",labels[row.mastery_status]||row.mastery_status));body.append(tr)}
+  table.append(head,body);host.append(table);
+ }
+ host.append(el("p","ملاحظة: مؤشرات الإتقان المعتمدة من الدروس تتطلب ثلاث نتائج مقيمة على الأقل لكل هدف. لا تعني قلة البيانات ضعف مستوى الطالب.","muted"));
+}
 async function load(){if(!cfg.url||!cfg.key){status("إعداد اتصال Supabase غير متاح.",true);return}db=createClient(cfg.url,cfg.key);const{data:{user},error:authError}=await db.auth.getUser();if(authError||!user){status("يجب تسجيل الدخول بحساب مدير من بوابة الطالب أولاً.",true);return}
 const{data:profile,error:profileError}=await db.from("academy_profiles").select("role").eq("id",user.id).maybeSingle();if(profileError||profile?.role!=="admin"){status("تم رفض الوصول: هذه الصفحة مخصصة لحسابات الإدارة فقط.",true);return}
 status("تم التحقق من صلاحية المدير. جارٍ تحميل الإحصائيات…");const results=await Promise.all([
