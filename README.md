@@ -122,6 +122,15 @@
 ملف الدفعة: `supabase/applied_sectoral_meteorology_lessons_batch_01.sql`
 ملف استكمال أمثلة الدروس بحلول تفسيرية: `supabase/applied_sectoral_lesson_example_solutions.sql`.
 
+## إدارة الشهادات والإلغاء الموثق
+
+أضيفت صفحة `certificate-admin.html` لإدارة الشهادات الصادرة، مع البحث وعرض الحالة وسجل الإلغاء. الإلغاء يتطلب حساب مدير وسبباً موثقاً لا يقل عن 20 حرفاً، ويتم عبر دالة خادمية مع سجل تدقيق خاص. تبقى صفحة `verify-certificate.html` للتحقق العام المحدود، وتُظهر الشهادة الملغاة كغير صالحة.
+
+ملفات SQL:
+- `supabase/certificate_revocation_and_audit.sql`
+- `supabase/certificate_audit_reader.sql`
+- `supabase/grant_certificate_audit_admin_read.sql`
+
 ## سير مراجعة المحتوى والحوكمة قبل النشر
 
 أضيف سير مراجعة علمية وتحريرية موثق لكل درس:
