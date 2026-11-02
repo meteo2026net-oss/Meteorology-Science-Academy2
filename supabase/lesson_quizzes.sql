@@ -42,7 +42,7 @@ declare v_lessons jsonb;v_questions jsonb;v_assignments jsonb;
 begin
  if not coalesce((select private.is_academy_admin()),false) then raise exception 'Administrator access required'; end if;
  select coalesce(jsonb_agg(jsonb_build_object('id',l.id,'title',l.title,'slug',l.slug,'course_id',l.course_id,
-  'course_title',c.title,'level',l.level,'published',l.published,'chapter_title',l.chapter_title)
+  'course_title',c.title,'course_published',c.published,'level',l.level,'published',l.published,'chapter_title',l.chapter_title)
   order by c.sort_order,l.sort_order,l.title),'[]'::jsonb)
  into v_lessons from public.academy_lessons l join public.academy_courses c on c.id=l.course_id;
  select coalesce(jsonb_agg(jsonb_build_object('question_code',q.question_code,'track',q.track,'level',q.level,
