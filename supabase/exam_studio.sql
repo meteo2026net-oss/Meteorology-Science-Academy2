@@ -133,3 +133,10 @@ grant execute on function public.admin_exam_studio_data() to authenticated;
 grant execute on function public.admin_save_exam_question(jsonb) to authenticated;
 grant execute on function public.admin_save_exam_definition(jsonb) to authenticated;
 grant execute on function public.admin_toggle_exam_question(text,boolean) to authenticated;
+
+drop policy if exists "deny_client_access_to_exam_definitions" on private.academy_exam_definitions;
+create policy "deny_client_access_to_exam_definitions"
+on private.academy_exam_definitions for all to public
+using (false) with check (false);
+create index if not exists academy_exam_definitions_course_idx on private.academy_exam_definitions(course_id);
+create index if not exists academy_exam_definitions_creator_idx on private.academy_exam_definitions(created_by);
