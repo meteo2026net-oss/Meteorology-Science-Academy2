@@ -41,8 +41,8 @@ function refresh(){
  $("best").textContent=h.length?Math.max(...h.map(x=>Number(x.score)))+"%":"—";
  const host=$("historyBody");host.replaceChildren();
  if(!h.length)host.textContent="لم تسجل محاولات بعد.";
- else{const table=el("table"),head=el("thead"),hr=el("tr");["التاريخ","المسار","المستوى","النتيجة","الحالة"].forEach(x=>hr.append(el("th",x)));head.append(hr);const body=el("tbody");
- for(const x of h){const tr=el("tr");tr.append(el("td",new Date(x.created_at).toLocaleDateString("ar")),el("td",names[x.track]||x.track),el("td",levels[x.level]||x.level),el("td",Number(x.score)+"%"),el("td",x.passed?"مجتاز":"لم يجتز",x.passed?"good":"bad"));body.append(tr)}table.append(head,body);host.append(table)}
+ else{const table=el("table"),head=el("thead"),hr=el("tr");["التاريخ","الاختبار / المسار","المستوى","النتيجة","الحالة"].forEach(x=>hr.append(el("th",x)));head.append(hr);const body=el("tbody");
+ for(const x of h){const tr=el("tr");tr.append(el("td",new Date(x.created_at).toLocaleDateString("ar")),el("td",x.exam_title||names[x.track]||x.track),el("td",levels[x.level]||x.level),el("td",Number(x.score)+"%"),el("td",x.passed?"مجتاز":"لم يجتز",x.passed?"good":"bad"));body.append(tr)}table.append(head,body);host.append(table)}
  const certHost=$("certList");certHost.replaceChildren();
  if(!d.certificates?.length)certHost.textContent="لا توجد شهادات صادرة حتى الآن.";
  else for(const cert of d.certificates){const b=el("button","شهادة "+(names[cert.track]||cert.track)+" · "+cert.score+"%","btn gold");b.onclick=()=>showCert(cert);certHost.append(b)}
@@ -72,7 +72,7 @@ function renderReview(review){
  const title=el("div","نتيجة الاختبار","eyebrow"),heading=el("h2",lastResult.passed?"أحسنت، اجتزت الاختبار":"تحتاج إلى مراجعة بعض المفاهيم",lastResult.passed?"good":"bad");host.append(title,heading);
  const grid=el("div",undefined,"grid");
  [[lastResult.score+"%","النتيجة"],[lastResult.correct_count+"/"+lastResult.total_count,"إجابات صحيحة"],[lastResult.passed?"اجتياز":"غير مجتاز","الحالة"]].forEach(([v,l])=>{const box=el("div",undefined,"stat");box.append(el("b",v),el("span",l));grid.append(box)});host.append(grid,el("h3","مراجعة الأسئلة والتفسيرات"));
- for(const [i,q] of (review||[]).entries()){const card=el("div",undefined,"question");card.append(el("div","سؤال "+(i+1)+" · "+q.topic,"qtop"),el("b",q.prompt),el("p","إجابتك: "+(q.selected_index===null?"لم تجب":q.choices[q.selected_index])),el("p","الإجابة الصحيحة: "+q.choices[q.correct_index],"good"),el("div",q.explanation,"explain"));host.append(card)}
+ for(const [i,q] of (review||[]).entries()){const card=el("div",undefined,"question");card.append(el("div","سؤال "+(i+1)+" · "+q.topic+" · "+({concept:"مفهومي",calculation:"حسابي",data_interpretation:"تفسير بيانات",map_analysis:"تحليل خريطة"}[q.question_type]||"سؤال"),"qtop"),el("b",q.prompt));if(q.learning_objective)card.append(el("p","هدف التعلم: "+q.learning_objective,"muted"));if(q.formula)card.append(el("pre",q.formula,"explain"));if(q.media_url&&/^https:\/\//i.test(q.media_url)){const img=el("img");img.src=q.media_url;img.alt="رسم توضيحي";img.loading="lazy";img.style.maxWidth="100%";img.style.maxHeight="300px";card.append(img)}card.append(el("p","إجابتك: "+(q.selected_index===null?"لم تجب":q.choices[q.selected_index])),el("p","الإجابة الصحيحة: "+q.choices[q.correct_index],"good"),el("div",q.explanation,"explain"));host.append(card)}
  const actions=el("div",undefined,"actions"),again=el("button","اختبار جديد","primary");again.onclick=()=>{$("setup").classList.remove("hidden");host.classList.add("hidden")};actions.append(again);
  if(lastResult.certificate){const cert=el("button","عرض شهادة الإتمام","gold");cert.onclick=()=>showCert(lastResult.certificate);actions.append(cert)}
  host.append(actions);
@@ -114,7 +114,7 @@ async function requireUser(){const{data,error}=await db.auth.getUser();if(error|
 async function refresh(){
  await requireUser();
  const [attempts,certs]=await Promise.all([
- db.from("academy_exam_attempts").select("track,level,score,passed,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(100),
+ db.from("academy_exam_attempts").select("track,level,score,passed,created_at,exam_title,course_id").eq("user_id",user.id).order("created_at",{ascending:false}).limit(100),
  db.from("academy_certificates").select("certificate_code,student_name,track,score,issued_at,revoked_at").eq("user_id",user.id).is("revoked_at",null).order("issued_at",{ascending:false})
  ]);
  if(attempts.error)throw attempts.error;if(certs.error)throw certs.error;
