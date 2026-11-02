@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إدارة الفصول والوحدات | أكاديمية علوم الأرصاد</title>
+<style>
+:root{--bg:#081321;--p:#102137;--p2:#142b42;--line:#29445d;--txt:#edf6ff;--muted:#a9bfd2;--cyan:#42d6e8;--gold:#f4c45e;--red:#ff7777}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#173651,transparent 38%),var(--bg);color:var(--txt);font:15px/1.9 Tahoma,Arial,sans-serif}.wrap{max-width:1100px;margin:auto;padding:20px}.panel{background:var(--p);border:1px solid var(--line);border-radius:16px;padding:18px;margin:14px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{display:block;color:var(--muted);font-size:13px;margin:8px 0}input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;background:#091827;color:var(--txt);font:inherit;margin-top:4px}button,a{border:1px solid var(--line);border-radius:9px;padding:8px 12px;background:var(--p2);color:var(--txt);font:inherit;cursor:pointer;text-decoration:none}.primary{background:var(--cyan);color:#05202a;font-weight:bold}.row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.muted{color:var(--muted)}.list{display:grid;gap:8px}.item{padding:10px;background:#0b1a2a;border:1px solid var(--line);border-radius:9px}.status{padding:10px;background:#0b1928;border-right:3px solid var(--cyan);border-radius:8px}.danger{color:#ffaaaa}@media(max-width:750px){.grid,.fields{grid-template-columns:1fr}.wrap{padding:12px}}
+</style>
+</head>
+<body><main class="wrap">
+<header class="row"><div><h1>إدارة هيكل المواد العلمية</h1><p class="muted">التخصص ← المادة ← الفصل ← الوحدة ← الدرس</p></div><div><a href="editor.html">استوديو تأليف الدروس</a> <a href="index.html">المكتبة</a></div></header>
+<section class="panel" id="login"><h2>دخول مدير المحتوى</h2><div class="fields"><label>رابط Supabase<input id="url" type="url"></label><label>مفتاح Publishable<input id="key" type="password"></label><label>البريد الإلكتروني<input id="email" type="email"></label><label>كلمة المرور<input id="password" type="password"></label></div><button class="primary" id="connect">اتصال</button><p id="status" class="status">يلزم حساب مدير محتوى. لا تستخدم مفتاح service_role هنا.</p></section>
+<div id="app" hidden>
+<section class="panel"><label>المادة<select id="course"></select></label><div class="grid">
+<div><h2>الفصول</h2><div class="row"><input id="chapterName" placeholder="اسم الفصل"><button id="addChapter" class="primary">إضافة فصل</button></div><div id="chapters" class="list"></div></div>
+<div><h2>الوحدات</h2><label>الفصل المحدد<select id="chapter"></select></label><div class="row"><input id="unitName" placeholder="اسم الوحدة"><button id="addUnit" class="primary">إضافة وحدة</button></div><div id="units" class="list"></div></div>
+</div></section>
+<section class="panel"><h2>ربط الدروس بالفصول والوحدات / نقلها</h2><p class="muted">اختر الدرس ثم عيّن الفصل والوحدة الجديدة. الحفظ يحدّث الربط والعناوين القديمة المتوافقة.</p><div class="fields"><label>الدرس<select id="lesson"></select></label><label>الفصل<select id="moveChapter"></select></label><label>الوحدة<select id="moveUnit"></select></label></div><button id="moveLesson" class="primary">حفظ موقع الدرس</button></section>
+</div>
+</main>
+<script type="module">
+import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm";
+const $=id=>document.getElementById(id),STORE="msa-supabase-config-v1";
+let db=null,chapters=[],units=[],lessons=[];
+const say=(s,bad=false)=>{$("status").textContent=s;$("status").style.borderColor=bad?"#ff7777":"#42d6e8"};
+async function connect(){
+ const url=$("url").value.trim(),key=$("key").value.trim();
+ if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)||!key){say("تحقق من الرابط ومفتاح Publishable.",true);return}
+ localStorage.setItem(STORE,JSON.stringify({url,key}));db=createClient(url,key);
+ const{error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
+ if(error){say(error.message,true);return}
+ const{data:{user}}=await db.auth.getUser();
+ const p=await db.from("academy_profiles").select("role").eq("id",user.id).maybeSingle();
+ if(p.error||p.data?.role!=="admin"){await db.auth.signOut();say("الحساب لا يملك صلاحية مدير المحتوى.",true);return}
+ $("login").hidden=true;$("app").hidden=false;await loadCourses();
+}
+async function loadCourses(){
+ const{data,error}=await db.from("academy_courses").select("id,title").order("sort_order");
+ if(error){say(error.message,true);return}
+ $("course").innerHTML=(data||[]).map(x=>'<option value="'+x.id+'">'+x.title+'</option>').join("");
+ await loadAll();
+}
+async function loadAll(){
+ const course=$("course").value;if(!course)return;
+ const[ch,le]=await Promise.all([
+  db.from("academy_chapters").select("*").eq("course_id",course).order("sort_order"),
+  db.from("academy_lessons").select("id,title,slug,chapter_id,unit_id,chapter_title,unit_title").eq("course_id",course).order("sort_order")
+ ]);
+ if(ch.error||le.error){say("تعذر تحميل الهيكل. تأكد من تطبيق supabase/hierarchy.sql: "+(ch.error?.message||le.error?.message),true);return}
+ chapters=ch.data||[];lessons=le.data||[];
+ $("chapters").innerHTML=chapters.map(x=>'<div class="item"><b>'+x.title+'</b><div class="muted">ترتيب: '+x.sort_order+'</div><button data-rename-chapter="'+x.id+'">إعادة تسمية</button> <button class="danger" data-delete-chapter="'+x.id+'">حذف</button></div>').join("")||'<p class="muted">لا توجد فصول.</p>';
+ const opts='<option value="">بدون فصل</option>'+chapters.map(x=>'<option value="'+x.id+'">'+x.title+'</option>').join("");
+ $("chapter").innerHTML=opts;$("moveChapter").innerHTML=opts;
+ $("lesson").innerHTML=lessons.map(x=>'<option value="'+x.id+'">'+x.title+' · '+(x.chapter_title||"غير مصنف")+'</option>').join("");
+ await loadUnits();
+}
+async function loadUnits(){
+ const chapter=$("chapter").value;
+ const{data,error}=chapter?await db.from("academy_units").select("*").eq("chapter_id",chapter).order("sort_order"):{data:[],error:null};
+ if(error){say(error.message,true);return}
+ units=data||[];
+ $("units").innerHTML=units.map(x=>'<div class="item"><b>'+x.title+'</b><div class="muted">ترتيب: '+x.sort_order+'</div><button data-rename-unit="'+x.id+'">إعادة تسمية</button> <button class="danger" data-delete-unit="'+x.id+'">حذف</button></div>').join("")||'<p class="muted">لا توجد وحدات في هذا الفصل.</p>';
+ $("moveUnit").innerHTML='<option value="">بدون وحدة</option>'+units.map(x=>'<option value="'+x.id+'">'+x.title+'</option>').join("");
+}
+$("connect").onclick=()=>connect().catch(e=>say(e.message,true));
+$("course").onchange=()=>loadAll();
+$("chapter").onchange=()=>loadUnits();
+$("moveChapter").onchange=async()=>{const id=$("moveChapter").value;const{data,error}=id?await db.from("academy_units").select("id,title").eq("chapter_id",id).order("sort_order"):{data:[],error:null};if(error){say(error.message,true);return}$("moveUnit").innerHTML='<option value="">بدون وحدة</option>'+(data||[]).map(x=>'<option value="'+x.id+'">'+x.title+'</option>').join("")};
+$("addChapter").onclick=async()=>{const title=$("chapterName").value.trim(),course=$("course").value;if(!title||!course)return;const{error}=await db.from("academy_chapters").insert({course_id:course,title,sort_order:chapters.length+1});if(error){say(error.message,true);return}$("chapterName").value="";say("تمت إضافة الفصل.");await loadAll()};
+$("addUnit").onclick=async()=>{const title=$("unitName").value.trim(),chapter=$("chapter").value;if(!title||!chapter){say("أدخل اسم الوحدة واختر فصلاً.",true);return}const{error}=await db.from("academy_units").insert({chapter_id:chapter,title,sort_order:units.length+1});if(error){say(error.message,true);return}$("unitName").value="";say("تمت إضافة الوحدة.");await loadUnits()};
+$("chapters").onclick=async e=>{
+ const rename=e.target.dataset.renameChapter,del=e.target.dataset.deleteChapter;
+ if(rename){const old=chapters.find(x=>x.id===rename),title=prompt("اسم الفصل الجديد:",old.title);if(!title?.trim())return;const{error}=await db.from("academy_chapters").update({title:title.trim(),updated_at:new Date().toISOString()}).eq("id",rename);if(error){say(error.message,true);return}}
+ if(del){if(!confirm("سيُحذف الفصل. تبقى الدروس محفوظة لكن يفك ارتباطها بالفصل. متابعة؟"))return;const{error}=await db.from("academy_chapters").delete().eq("id",del);if(error){say(error.message,true);return}}
+ await loadAll();
+};
+$("units").onclick=async e=>{
+ const rename=e.target.dataset.renameUnit,del=e.target.dataset.deleteUnit;
+ if(rename){const old=units.find(x=>x.id===rename),title=prompt("اسم الوحدة الجديدة:",old.title);if(!title?.trim())return;const{error}=await db.from("academy_units").update({title:title.trim(),updated_at:new Date().toISOString()}).eq("id",rename);if(error){say(error.message,true);return}}
+ if(del){if(!confirm("سيتم حذف الوحدة مع إبقاء الدروس دون وحدة. متابعة؟"))return;const{error}=await db.from("academy_units").delete().eq("id",del);if(error){say(error.message,true);return}}
+ await loadUnits();
+};
+$("moveLesson").onclick=async()=>{
+ const lesson=lessons.find(x=>x.id===$("lesson").value),chapter=chapters.find(x=>x.id===$("moveChapter").value),unit=$("moveUnit").value;
+ if(!lesson){say("اختر درساً.",true);return}
+ const row={chapter_id:chapter?.id||null,unit_id:unit||null,chapter_title:chapter?.title||"الفصل الأول",unit_title:units.find(x=>x.id===unit)?.title||""};
+ const{error}=await db.from("academy_lessons").update(row).eq("id",lesson.id);
+ if(error){say(error.message,true);return}
+ say("تم نقل الدرس إلى الفصل والوحدة المحددين.");await loadAll();
+};
+try{const cfg=JSON.parse(localStorage.getItem(STORE)||"{}");$("url").value=cfg.url||"";$("key").value=cfg.key||""}catch{}
+</script></body></html>
