@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#081321">
+<title>متابعة الطلاب | أكاديمية علوم الأرصاد</title>
+<style>
+:root{--bg:#081321;--p:#102137;--p2:#142b42;--line:#29445d;--txt:#edf6ff;--muted:#a9bfd2;--cyan:#42d6e8;--gold:#f4c45e;--green:#55d6a0;--red:#ff7777}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#173651,transparent 38%),var(--bg);color:var(--txt);font:15px/1.9 Tahoma,Arial,sans-serif}.wrap{max-width:1250px;margin:auto;padding:22px}
+header,.row,.actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.brand{display:flex;gap:12px;align-items:center}.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--cyan),#2879b8);display:grid;place-items:center;color:#06202b;font-size:24px}
+.panel,.hero,.stat{background:var(--p);border:1px solid var(--line);border-radius:16px;padding:18px;margin:14px 0}.hero h1{margin:4px 0;font-size:27px}.muted{color:var(--muted)}.eyebrow{color:var(--cyan);font-weight:bold;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat b{display:block;font-size:25px;color:var(--gold)}.btn,button,a{font:inherit;border:1px solid var(--line);border-radius:9px;padding:8px 13px;background:var(--p2);color:var(--txt);cursor:pointer;text-decoration:none}.primary{background:var(--cyan);color:#05202a;border-color:var(--cyan);font-weight:bold}
+input{width:min(420px,100%);padding:11px;border:1px solid var(--line);border-radius:9px;background:#091827;color:var(--txt);font:inherit}
+.status{padding:11px 13px;background:#0b1928;border-right:3px solid var(--cyan);border-radius:9px;margin:10px 0}.error{border-color:var(--red)}.good{color:var(--green)}.bad{color:var(--red)}
+table{width:100%;border-collapse:collapse;min-width:700px}th,td{text-align:right;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}.tablewrap{overflow:auto}.student{background:#0b1a2a}.hidden{display:none!important}.empty{padding:18px;color:var(--muted);text-align:center}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.wrap{padding:12px}}@media(max-width:520px){.grid{grid-template-columns:1fr}.hero h1{font-size:22px}}
+</style>
+</head>
+<body><main class="wrap">
+<header><div class="brand"><div class="logo">📊</div><div><b>متابعة الطلاب والتحصيل</b><div class="muted">لوحة تحليلية خاصة بإدارة الأكاديمية</div></div></div><nav class="actions"><a href="admin.html">لوحة الإدارة</a><a href="index.html">الأكاديمية</a><button id="refresh">تحديث البيانات</button></nav></header>
+<section class="hero"><div class="eyebrow">تحليلات تعليمية · صلاحية مدير فقط</div><h1>متابعة الأداء والتقدم الدراسي</h1><p class="muted">تعرض هذه الصفحة بيانات الطلاب والإنجازات ونتائج الاختبارات من Supabase مباشرة. لا تعرض البريد الإلكتروني أو بيانات الدخول.</p></section>
+<div class="status" id="status" role="status">جارٍ التحقق من جلسة المدير…</div>
+<section id="app" class="hidden">
+<div class="grid">
+<div class="stat"><b id="students">0</b>حسابات الطلاب</div>
+<div class="stat"><b id="active">0</b>طلاب لديهم نشاط</div>
+<div class="stat"><b id="completed">0</b>إنجازات الدروس</div>
+<div class="stat"><b id="average">—</b>متوسط نتائج الاختبارات</div>
+</div>
+<section class="panel"><div class="row"><h2>سجل الطلاب</h2><input id="search" type="search" placeholder="ابحث باسم الطالب أو جزء من المعرّف"></div><div class="tablewrap" id="studentTable"><div class="empty">جارٍ تحميل الطلاب…</div></div></section>
+<section class="panel hidden" id="details"><div class="row"><h2 id="detailTitle">تفاصيل الطالب</h2><button id="closeDetails">إغلاق</button></div><div class="grid"><div class="stat"><b id="dLessons">0</b>دروس مكتملة</div><div class="stat"><b id="dAttempts">0</b>محاولات اختبار</div><div class="stat"><b id="dBest">—</b>أفضل نتيجة</div><div class="stat"><b id="dAverage">—</b>متوسط النتائج</div></div><h3>الإنجازات</h3><div id="dProgress" class="muted"></div><h3>الاختبارات الأخيرة</h3><div id="dExams" class="muted"></div></section>
+</section>
+</main>
+<script type="module">
+import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
+const $=id=>document.getElementById(id),saved=(()=>{try{return JSON.parse(localStorage.getItem("msa-supabase-config-v1")||"{}")}catch{return{}}})();
+const cfg={url:saved.url||SUPABASE_URL,key:saved.key||SUPABASE_PUBLISHABLE_KEY};let db=null,students=[],progress=[],attempts=[];
+function status(message,bad=false){$("status").textContent=message;$("status").classList.toggle("error",bad)}
+function el(tag,text,className){const node=document.createElement(tag);if(text!==undefined)node.textContent=text;if(className)node.className=className;return node}
+function renderStudents(){const q=$("search").value.trim().toLowerCase(),host=$("studentTable"),filtered=students.filter(s=>(s.display_name||"").toLowerCase().includes(q)||s.id.toLowerCase().includes(q));host.replaceChildren();if(!filtered.length){host.append(el("div","لا توجد نتائج مطابقة.","empty"));return}
+const wrap=el("div",undefined,"tablewrap"),table=el("table"),head=el("thead"),hr=el("tr");["الطالب","الدروس المكتملة","محاولات الاختبار","أفضل نتيجة","آخر نشاط","التفاصيل"].forEach(x=>hr.append(el("th",x)));head.append(hr);const body=el("tbody");
+for(const s of filtered){const p=progress.filter(x=>x.user_id===s.id&&x.completed),a=attempts.filter(x=>x.user_id===s.id),best=a.length?Math.max(...a.map(x=>Number(x.score))):null,last=[...p.map(x=>x.updated_at),...a.map(x=>x.created_at)].sort().pop();const tr=el("tr",undefined,"student");tr.append(el("td",s.display_name||"طالب الأكاديمية"),el("td",String(p.length)),el("td",String(a.length)),el("td",best===null?"—":best+"%"),el("td",last?new Date(last).toLocaleDateString("ar"):"لا يوجد"));const td=el("td"),b=el("button","عرض التفاصيل");b.dataset.student=s.id;td.append(b);tr.append(td);body.append(tr)}
+table.append(head,body);wrap.append(table);host.append(wrap)}
+function renderDetails(id){const s=students.find(x=>x.id===id);if(!s)return;const p=progress.filter(x=>x.user_id===id&&x.completed).sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at)),a=attempts.filter(x=>x.user_id===id).sort((x,y)=>new Date(y.created_at)-new Date(x.created_at)),scores=a.map(x=>Number(x.score));$("detailTitle").textContent="ملف الطالب: "+(s.display_name||"طالب الأكاديمية");$("dLessons").textContent=p.length;$("dAttempts").textContent=a.length;$("dBest").textContent=scores.length?Math.max(...scores)+"%":"—";$("dAverage").textContent=scores.length?(scores.reduce((x,y)=>x+y,0)/scores.length).toFixed(1)+"%":"—";
+const progressHost=$("dProgress");progressHost.replaceChildren();if(!p.length)progressHost.textContent="لم يسجل هذا الطالب دروساً مكتملة.";else{const list=el("ul");for(const row of p){const title=row.academy_lessons?.title||"درس";list.append(el("li",title+" · "+new Date(row.updated_at).toLocaleDateString("ar")))}progressHost.append(list)}
+const examHost=$("dExams");examHost.replaceChildren();if(!a.length)examHost.textContent="لا توجد محاولات اختبار.";else{const table=el("table"),body=el("tbody");for(const x of a.slice(0,20)){const tr=el("tr");tr.append(el("td",({math:"الرياضيات",physics:"الفيزياء",all:"مختلط"}[x.track]||x.track)),el("td",Number(x.score)+"%"),el("td",x.passed?"مجتاز":"لم يجتز"),el("td",new Date(x.created_at).toLocaleString("ar")));body.append(tr)}table.append(body);examHost.append(table)}
+$("details").classList.remove("hidden");$("details").scrollIntoView({behavior:"smooth",block:"start"})}
+async function load(){if(!cfg.url||!cfg.key){status("إعداد اتصال Supabase غير متاح.",true);return}db=createClient(cfg.url,cfg.key);const{data:{user},error:authError}=await db.auth.getUser();if(authError||!user){status("يجب تسجيل الدخول بحساب مدير من بوابة الطالب أولاً.",true);return}
+const{data:profile,error:profileError}=await db.from("academy_profiles").select("role").eq("id",user.id).maybeSingle();if(profileError||profile?.role!=="admin"){status("تم رفض الوصول: هذه الصفحة مخصصة لحسابات الإدارة فقط.",true);return}
+status("تم التحقق من صلاحية المدير. جارٍ تحميل الإحصائيات…");const results=await Promise.all([
+db.from("academy_profiles").select("id,display_name,created_at").order("created_at",{ascending:false}),
+db.from("academy_lesson_progress").select("user_id,lesson_id,completed,updated_at,academy_lessons(title)").order("updated_at",{ascending:false}),
+db.from("academy_exam_attempts").select("user_id,track,score,passed,created_at").order("created_at",{ascending:false})
+]);const err=results.find(x=>x.error);if(err){status("تعذر تحميل بيانات المتابعة: "+err.error.message,true);return}
+students=results[0].data||[];progress=results[1].data||[];attempts=results[2].data||[];const scores=attempts.map(x=>Number(x.score));$("students").textContent=students.length;$("active").textContent=new Set([...progress.map(x=>x.user_id),...attempts.map(x=>x.user_id)]).size;$("completed").textContent=progress.filter(x=>x.completed).length;$("average").textContent=scores.length?(scores.reduce((x,y)=>x+y,0)/scores.length).toFixed(1)+"%":"—";$("app").classList.remove("hidden");status("اكتمل تحميل البيانات بنجاح. عدد الطلاب: "+students.length+" · محاولات الاختبار: "+attempts.length);renderStudents()}
+$("refresh").onclick=()=>load();$("search").oninput=renderStudents;$("studentTable").addEventListener("click",e=>{const b=e.target.closest("[data-student]");if(b)renderDetails(b.dataset.student)});$("closeDetails").onclick=()=>$("details").classList.add("hidden");load().catch(e=>status("حدث خطأ: "+e.message,true));
+</script></body></html>
