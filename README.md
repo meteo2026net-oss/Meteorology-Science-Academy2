@@ -49,11 +49,12 @@
 16. نفّذ `supabase/progress_policy_performance.sql` لتوحيد سياسات تقدم الطالب وفهرسة مفاتيح الربط.
 17. نفّذ `supabase/meteorology_question_batch_2.sql` لإضافة 16 سؤالاً تطبيقياً إضافياً في الأرصاد.
 18. نفّذ `supabase/visual_meteorology_question_batch.sql` لإضافة أسئلة تحليل خرائط وقراءة بيانات مع رسوم SVG أصلية.
-19. نفّذ `supabase/seed_draft_lesson_quizzes.sql` لإنشاء ستة اختبارات أولية كمسودات مرتبطة بدروس الأرصاد المناسبة.
-20. ضع رابط المشروع ومفتاح Publishable في `supabase-config.js`. لا تضع مفتاح `service_role` أو أي مفتاح سري في ملفات المتصفح.
-21. أنشئ حساب المسؤول من `account.html`، وأكمل تأكيد البريد إذا كان مفعلاً.
-22. بعد إنشاء الحساب، استبدل البريد في `supabase/bootstrap_admin.sql` بالبريد الفعلي، ثم نفّذ الملف يدوياً من SQL Editor بصلاحية موثوقة.
-23. سجّل الدخول من `admin.html` أو `editor.html` لبدء إدارة المحتوى، وافتح `exam-studio.html` لإدارة بنك الأسئلة ونشر الاختبارات، أو `lesson-quiz-studio.html` لربط الاختبارات القصيرة بالدروس.
+19. نفّذ `supabase/meteorology_interpretation_batch_3.sql` لإضافة أسئلة تحليل المسبار الرأسي ومرور الجبهات والهطول.
+20. نفّذ `supabase/seed_draft_lesson_quizzes.sql` لإنشاء ستة اختبارات أولية كمسودات مرتبطة بدروس الأرصاد المناسبة.
+21. ضع رابط المشروع ومفتاح Publishable في `supabase-config.js`. لا تضع مفتاح `service_role` أو أي مفتاح سري في ملفات المتصفح.
+22. أنشئ حساب المسؤول من `account.html`، وأكمل تأكيد البريد إذا كان مفعلاً.
+23. بعد إنشاء الحساب، استبدل البريد في `supabase/bootstrap_admin.sql` بالبريد الفعلي، ثم نفّذ الملف يدوياً من SQL Editor بصلاحية موثوقة.
+24. سجّل الدخول من `admin.html` أو `editor.html` لبدء إدارة المحتوى، وافتح `exam-studio.html` لإدارة بنك الأسئلة ونشر الاختبارات، أو `lesson-quiz-studio.html` لربط الاختبارات القصيرة بالدروس.
 
 لا تمنح حساباً دور المدير عبر واجهة عامة. ترقية الدور عملية إدارية موثوقة فقط.
 
