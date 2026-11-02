@@ -14,7 +14,7 @@
 <script type="module">
 import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm";
 import{SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY}from"./supabase-config.js";
-const $=id=>document.getElementById(id),db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);let certificates=[];
+const $=id=>document.getElementById(id),saved=(()=>{try{return JSON.parse(localStorage.getItem("msa-supabase-config-v1")||"{}")}catch{return{}}})(),db=createClient(saved.url||SUPABASE_URL,saved.key||SUPABASE_PUBLISHABLE_KEY);let certificates=[];
 function status(message,bad=false){$("status").textContent=message;$("status").style.borderRightColor=bad?"#ff7777":"#42d6e8"}
 function cell(tr,value){const td=document.createElement("td");td.textContent=String(value??"—");tr.append(td);return td}
 async function load(){status("جارٍ تحميل سجل الشهادات…");const{data:{user},error:authError}=await db.auth.getUser();if(authError||!user){status("سجّل الدخول أولاً بحساب مدير.",true);return}
