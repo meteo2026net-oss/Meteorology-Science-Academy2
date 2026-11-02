@@ -23,7 +23,8 @@ class AssetParser(HTMLParser):
         attrs = dict(attrs)
         src = attrs.get("src")
         if src and not src.startswith(("http://", "https://", "//", "data:")):
-            target = (self.file.parent / src.split("?", 1)[0].split("#", 1)[0]).resolve()
+            clean_src = src.split("?", 1)[0].split("#", 1)[0]
+            target = ((ROOT / clean_src.lstrip("/")) if clean_src.startswith("/") else (self.file.parent / clean_src)).resolve()
             if not target.exists():
                 ERRORS.append(f"{self.file.relative_to(ROOT)}: missing script asset: {src}")
         if not src:
