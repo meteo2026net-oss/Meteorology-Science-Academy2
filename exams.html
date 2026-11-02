@@ -58,7 +58,7 @@ const $=id=>document.getElementById(id), key="msa-exam-results-v1";
 let current=[],answers=[],pos=0,submitted=false,lastResult=null;
 const trackName=t=>t==="math"?"الرياضيات":t==="physics"?"الفيزياء":"المسار المختلط";
 const levelName=l=>({basic:"أساسي",intermediate:"متوسط",advanced:"متقدم"}[l]||"متنوع");
-const read=()=>{let local=[];try{local=JSON.parse(localStorage.getItem(key)||"[]")}catch{}const seen=new Set(remoteHistory.map(x=>x.date+"|"+x.score+"|"+x.track));return [...remoteHistory,...local.filter(x=>!seen.has(x.date+"|"+x.score+"|"+x.track))].sort((a,b)=>new Date(b.date)-new Date(a.date))};
+const read=()=>{let local=[];try{local=JSON.parse(localStorage.getItem(key)||"[]")}catch{}const remote=window.msaRemoteExamHistory||[];const seen=new Set(remote.map(x=>x.date+"|"+x.score+"|"+x.track));return [...remote,...local.filter(x=>!seen.has(x.date+"|"+x.score+"|"+x.track))].sort((a,b)=>new Date(b.date)-new Date(a.date))};
 function refresh(){let h=read(),passed=h.filter(x=>x.pass);$("attempts").textContent=h.length;$("mastered").textContent=passed.length;$("best").textContent=h.length?Math.max(...h.map(x=>x.score))+"%":"—";
 $("historyBody").innerHTML=h.length?'<table><thead><tr><th>التاريخ</th><th>المسار</th><th>النتيجة</th><th>الحالة</th></tr></thead><tbody>'+h.slice().reverse().map(x=>'<tr><td>'+new Date(x.date).toLocaleDateString("ar")+'</td><td>'+trackName(x.track)+'</td><td>'+x.score+'%</td><td class="'+(x.pass?"good":"bad")+'">'+(x.pass?"مجتاز":"لم يجتز")+'</td></tr>').join("")+'</tbody></table>':"لم تسجل محاولات بعد.";
 $("certList").innerHTML=passed.length?passed.map((x,i)=>'<button class="btn gold" data-cert="'+(h.indexOf(x))+'">شهادة '+trackName(x.track)+' · '+x.score+'%</button>').join(" "):"لا توجد شهادات متاحة بعد.";
@@ -73,9 +73,9 @@ $("start").onclick=start;$("prev").onclick=()=>{if(pos>0){pos--;renderQ()}};$("n
 </script><script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
-const configKey="msa-supabase-config-v1";let remoteHistory=[];
+const configKey="msa-supabase-config-v1";window.msaRemoteExamHistory=[];
 function remoteRead(){try{const saved=JSON.parse(localStorage.getItem(configKey)||"{}");return {url:saved.url||SUPABASE_URL,key:saved.key||SUPABASE_PUBLISHABLE_KEY}}catch{return {url:SUPABASE_URL,key:SUPABASE_PUBLISHABLE_KEY}}}
-async function loadRemoteHistory(){try{const cfg=remoteRead();if(!cfg.url||!cfg.key)return;const client=createClient(cfg.url,cfg.key);const{data:{user},error:authError}=await client.auth.getUser();if(authError||!user)return;const{data,error}=await client.from("academy_exam_attempts").select("track,level,score,correct_count,total_count,passed,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(100);if(error)throw error;remoteHistory=(data||[]).map(x=>({date:x.created_at,track:x.track,level:x.level,score:Number(x.score),correct:x.correct_count,total:x.total_count,pass:x.passed}));refresh()}catch(error){console.warn("تعذر تحميل سجل الاختبارات المركزي:",error.message||error)}}
+async function loadRemoteHistory(){try{const cfg=remoteRead();if(!cfg.url||!cfg.key)return;const client=createClient(cfg.url,cfg.key);const{data:{user},error:authError}=await client.auth.getUser();if(authError||!user)return;const{data,error}=await client.from("academy_exam_attempts").select("track,level,score,correct_count,total_count,passed,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(100);if(error)throw error;window.msaRemoteExamHistory=(data||[]).map(x=>({date:x.created_at,track:x.track,level:x.level,score:Number(x.score),correct:x.correct_count,total:x.total_count,pass:x.passed}));refresh()}catch(error){console.warn("تعذر تحميل سجل الاختبارات المركزي:",error.message||error)}}
 window.addEventListener("msa-exam-result",async event=>{
  try{
   const cfg=remoteRead();
