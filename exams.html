@@ -123,7 +123,8 @@ async function refresh(){
 window.msaExamApi={
  async listPublished(){await requireUser();const{data,error}=await db.rpc("get_published_academy_exams");if(error)throw error;return data||[]},
  async begin(examId){await requireUser();const{data,error}=await db.rpc("begin_academy_exam",{p_exam_id:examId});if(error)throw error;return data},
- async submitDefined(sessionId,answers){await requireUser();const{data,error}=await db.rpc("submit_defined_academy_exam",{p_session_id:sessionId,p_answers:answers});if(error)throw error;return data},\n async cancelSession(sessionId){await requireUser();const{data,error}=await db.rpc("cancel_academy_exam_session",{p_session_id:sessionId});if(error)throw error;return data},
+ async submitDefined(sessionId,answers){await requireUser();const{data,error}=await db.rpc("submit_defined_academy_exam",{p_session_id:sessionId,p_answers:answers});if(error)throw error;return data},
+ async cancelSession(sessionId){await requireUser();const{data,error}=await db.rpc("cancel_academy_exam_session",{p_session_id:sessionId});if(error)throw error;return data},
  async getQuestions(track,level,limit){await requireUser();const{data,error}=await db.rpc("get_academy_exam_questions",{p_track:track,p_level:level,p_limit:limit});if(error)throw error;return data||[]},
  async submit(track,level,answers){await requireUser();const{data,error}=await db.rpc("submit_academy_exam",{p_track:track,p_level:level,p_answers:answers});if(error)throw error;return data},
  refresh
