@@ -53,5 +53,18 @@ begin
   );
 end;
 $fn$;
+revoke all on function private.get_academy_assessment_analytics_internal() from public, anon;
+grant usage on schema private to authenticated;
+grant execute on function private.get_academy_assessment_analytics_internal() to authenticated;
+
+create or replace function public.get_academy_assessment_analytics()
+returns jsonb
+language sql
+stable
+security invoker
+set search_path = public, private, pg_temp
+as $wrapper$
+  select private.get_academy_assessment_analytics_internal();
+$wrapper$;
 revoke all on function public.get_academy_assessment_analytics() from public, anon;
 grant execute on function public.get_academy_assessment_analytics() to authenticated;
