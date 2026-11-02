@@ -26,7 +26,7 @@ table{width:100%;border-collapse:collapse;min-width:700px}th,td{text-align:right
 <div class="stat"><b id="completed">0</b>إنجازات الدروس</div>
 <div class="stat"><b id="average">—</b>متوسط نتائج الاختبارات</div><div class="stat"><b id="certificates">0</b>الشهادات الصادرة</div>
 </div>
-<section class="panel"><div class="row"><h2>سجل الطلاب</h2><input id="search" type="search" placeholder="ابحث باسم الطالب أو جزء من المعرّف"></div><div class="tablewrap" id="studentTable"><div class="empty">جارٍ تحميل الطلاب…</div></div></section>
+<section class="panel"><div class="row"><h2>سجل الطلاب</h2><div class="actions"><button id="exportCsv" type="button">تصدير التقرير CSV</button><input id="search" type="search" placeholder="ابحث باسم الطالب أو جزء من المعرّف"></div></div><div class="tablewrap" id="studentTable"><div class="empty">جارٍ تحميل الطلاب…</div></div></section>
 <section class="panel hidden" id="details"><div class="row"><h2 id="detailTitle">تفاصيل الطالب</h2><button id="closeDetails">إغلاق</button></div><div class="grid"><div class="stat"><b id="dLessons">0</b>دروس مكتملة</div><div class="stat"><b id="dAttempts">0</b>محاولات اختبار</div><div class="stat"><b id="dBest">—</b>أفضل نتيجة</div><div class="stat"><b id="dAverage">—</b>متوسط النتائج</div><div class="stat"><b id="dCertificates">0</b>الشهادات الصادرة</div></div><h3>الإنجازات</h3><div id="dProgress" class="muted"></div><h3>تحليل إتقان المهارات والأهداف التعليمية</h3><p class="muted">تعتمد المؤشرات على إجابات الاختبارات المصححة خادمياً. لا يصدر تصنيف إتقان قبل توافر خمس إجابات على الأقل موزعة على محاولتين.</p><div id="dMastery" class="muted">جارٍ تحميل تحليل المهارات…</div><h3>الاختبارات الأخيرة</h3><div id="dExams" class="muted"></div></section>
 </section>
 </main>
@@ -37,6 +37,17 @@ const $=id=>document.getElementById(id),saved=(()=>{try{return JSON.parse(localS
 const cfg={url:saved.url||SUPABASE_URL,key:saved.key||SUPABASE_PUBLISHABLE_KEY};let db=null,students=[],progress=[],attempts=[];
 function status(message,bad=false){$("status").textContent=message;$("status").classList.toggle("error",bad)}
 function el(tag,text,className){const node=document.createElement(tag);if(text!==undefined)node.textContent=text;if(className)node.className=className;return node}
+function exportStudentCsv(){
+ const headers=["معرف الحساب","اسم الطالب","الدروس المكتملة","محاولات الاختبار","أفضل نتيجة","متوسط النتائج","الشهادات الفعالة"];
+ const rows=students.map(s=>{
+  const p=progress.filter(x=>x.user_id===s.id&&x.completed),a=attempts.filter(x=>x.user_id===s.id),scores=a.map(x=>Number(x.score)).filter(Number.isFinite),certs=certificates.filter(x=>x.user_id===s.id&&!x.revoked_at);
+  return [s.id,s.display_name||"طالب الأكاديمية",p.length,a.length,scores.length?Math.max(...scores):"",scores.length?(scores.reduce((x,y)=>x+y,0)/scores.length).toFixed(2):"",certs.length];
+ });
+ const csv="\\uFEFF"+[headers,...rows].map(row=>row.map(value=>'"'+String(value??"").replace(/"/g,'""')+'"').join(",")).join("\\r\\n");
+ const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");
+ link.href=url;link.download="academy-student-report-"+new Date().toISOString().slice(0,10)+".csv";document.body.append(link);link.click();link.remove();URL.revokeObjectURL(url);
+ status("تم تجهيز تقرير CSV من البيانات المحمّلة في لوحة الإدارة.");
+}
 function renderStudents(){const q=$("search").value.trim().toLowerCase(),host=$("studentTable"),filtered=students.filter(s=>(s.display_name||"").toLowerCase().includes(q)||s.id.toLowerCase().includes(q));host.replaceChildren();if(!filtered.length){host.append(el("div","لا توجد نتائج مطابقة.","empty"));return}
 const wrap=el("div",undefined,"tablewrap"),table=el("table"),head=el("thead"),hr=el("tr");["الطالب","الدروس المكتملة","محاولات الاختبار","أفضل نتيجة","آخر نشاط","التفاصيل"].forEach(x=>hr.append(el("th",x)));head.append(hr);const body=el("tbody");
 for(const s of filtered){const p=progress.filter(x=>x.user_id===s.id&&x.completed),a=attempts.filter(x=>x.user_id===s.id),best=a.length?Math.max(...a.map(x=>Number(x.score))):null,last=[...p.map(x=>x.updated_at),...a.map(x=>x.created_at)].sort().pop();const tr=el("tr",undefined,"student");tr.append(el("td",s.display_name||"طالب الأكاديمية"),el("td",String(p.length)),el("td",String(a.length)),el("td",best===null?"—":best+"%"),el("td",last?new Date(last).toLocaleDateString("ar"):"لا يوجد"));const td=el("td"),b=el("button","عرض التفاصيل");b.dataset.student=s.id;td.append(b);tr.append(td);body.append(tr)}
@@ -87,5 +98,5 @@ db.from("academy_exam_attempts").select("user_id,track,score,passed,created_at,e
 db.from("academy_certificates").select("user_id,track,score,issued_at,certificate_code,revoked_at").order("issued_at",{ascending:false})
 ]);const err=results.find(x=>x.error);if(err){status("تعذر تحميل بيانات المتابعة: "+err.error.message,true);return}
 students=results[0].data||[];progress=results[1].data||[];attempts=results[2].data||[];certificates=results[3].data||[];const scores=attempts.map(x=>Number(x.score));$("students").textContent=students.length;$("active").textContent=new Set([...progress.map(x=>x.user_id),...attempts.map(x=>x.user_id)]).size;$("completed").textContent=progress.filter(x=>x.completed).length;$("average").textContent=scores.length?(scores.reduce((x,y)=>x+y,0)/scores.length).toFixed(1)+"%":"—";$("certificates").textContent=certificates.filter(x=>!x.revoked_at).length;$("app").classList.remove("hidden");status("اكتمل تحميل البيانات بنجاح. عدد الطلاب: "+students.length+" · محاولات الاختبار: "+attempts.length);renderStudents()}
-$("refresh").onclick=()=>load();$("search").oninput=renderStudents;$("studentTable").addEventListener("click",e=>{const b=e.target.closest("[data-student]");if(b)renderDetails(b.dataset.student)});$("closeDetails").onclick=()=>$("details").classList.add("hidden");load().catch(e=>status("حدث خطأ: "+e.message,true));
+$("refresh").onclick=()=>load();$("exportCsv").onclick=exportStudentCsv;$("search").oninput=renderStudents;$("studentTable").addEventListener("click",e=>{const b=e.target.closest("[data-student]");if(b)renderDetails(b.dataset.student)});$("closeDetails").onclick=()=>$("details").classList.add("hidden");load().catch(e=>status("حدث خطأ: "+e.message,true));
 </script></body></html>
