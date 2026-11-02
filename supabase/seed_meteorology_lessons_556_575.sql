@@ -37,7 +37,7 @@ with c as (
 )
 insert into public.academy_lessons(course_id,chapter_id,unit_id,chapter_title,unit_title,slug,title,summary,content,published,sort_order,estimated_minutes,learning_objectives,level)
 select c.id,ch.id,case when d.unit_title='الغلاف الجليدي والثلوج' then u1.id else u2.id end,
-'الأرصاد القطبية والغلاف الجليدي',d.unit_title,d.slug,d.title,d.summary,d.content,false,d.ord,d.mins,d.objectives,'متقدم'
+'الأرصاد القطبية والغلاف الجليدي',d.unit_title,d.slug,d.title,d.summary,d.content,false,d.ord,d.mins,d.objectives,'advanced'
 from d cross join c cross join ch cross join u1 cross join u2
 on conflict(course_id,slug) do update set
  chapter_id=excluded.chapter_id,unit_id=excluded.unit_id,chapter_title=excluded.chapter_title,
