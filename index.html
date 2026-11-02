@@ -61,11 +61,10 @@ async function loadPublished(){
   const title=document.createElement("h3");title.textContent=c.title;
   const desc=document.createElement("p");desc.className="muted";desc.textContent=c.description||"";
   const list=document.createElement("div");list.style.cssText="display:grid;gap:7px";
-  const{data:lessons}=await db.from("academy_lessons").select("title,slug,summary,estimated_minutes,level").eq("course_id",c.id).eq("published",true).order("sort_order");
-  for(const lesson of lessons||[]){
-   const a=document.createElement("a");a.className="btn";a.style.textDecoration="none";a.href="lesson.html?course="+encodeURIComponent(c.id)+"&lesson="+encodeURIComponent(lesson.slug);
-   a.textContent=lesson.title+" · "+(lesson.estimated_minutes||"—")+" دقيقة";list.append(a)
-  }
+  const{data:lessons}=await db.from("academy_lessons").select("title,slug,summary,estimated_minutes,level,chapter_title,unit_title").eq("course_id",c.id).eq("published",true).order("sort_order");
+  const chapters=new Map();
+  for(const lesson of lessons||[]){const chapter=lesson.chapter_title||"الفصل الأول";if(!chapters.has(chapter))chapters.set(chapter,new Map());const unit=lesson.unit_title||"دروس الفصل";if(!chapters.get(chapter).has(unit))chapters.get(chapter).set(unit,[]);chapters.get(chapter).get(unit).push(lesson)}
+  for(const[chapter,units]of chapters){const ch=document.createElement("section");ch.style.cssText="border-top:1px solid var(--line);padding-top:8px;margin-top:10px";const h=document.createElement("h4");h.textContent=chapter;ch.append(h);for(const[unit,items]of units){const uh=document.createElement("p");uh.className="muted";uh.style.margin="4px 0";uh.textContent=unit;ch.append(uh);for(const lesson of items){const a=document.createElement("a");a.className="btn";a.style.cssText="display:block;text-decoration:none;margin:5px 0";a.href="lesson.html?course="+encodeURIComponent(c.id)+"&lesson="+encodeURIComponent(lesson.slug);a.textContent=lesson.title+" · "+(lesson.estimated_minutes||"—")+" دقيقة";ch.append(a)}}list.append(ch)}
   card.append(title,desc,list);host.append(card)
  }
 }
