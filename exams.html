@@ -19,8 +19,9 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:18px}
 <header><div class="brand"><div class="logo">🎓</div><div><h1>مركز الاختبارات والتقييم</h1><div class="muted">أكاديمية علوم الأرصاد الجوية</div></div></div><nav class="controls" style="margin:0"><a class="btn" href="index.html">الأكاديمية</a><a class="btn" href="labs.html">المختبرات</a><a class="btn" href="account.html">حساب الطالب</a><a class="btn" href="verify-certificate.html">التحقق من شهادة</a></nav></header>
 <section class="hero"><div class="eyebrow">المرحلة الثالثة · التقييم وإتقان المعرفة</div><h2>اختبر فهمك، ثم راجع أخطاءك وطوّر مستواك</h2><p class="muted">بنك أسئلة تأسيسي في الرياضيات والفيزياء المرتبطتين بعلوم الأرصاد. يتكون كل اختبار من 10 أسئلة مختارة عشوائياً من المسار والمستوى المحددين.</p>
 <div class="grid"><div class="stat"><b id="attempts">0</b>محاولات محفوظة</div><div class="stat"><b id="best">—</b>أفضل نتيجة</div><div class="stat"><b id="mastered">0</b>اختبارات مجتازة</div></div></section>
-<section class="panel" id="setup"><h2>إعداد الاختبار</h2><div class="controls"><label>المسار<br><select id="track"><option value="all">اختبار مختلط</option><option value="math">الرياضيات</option><option value="physics">الفيزياء</option></select></label><label>المستوى<br><select id="level"><option value="all">جميع المستويات</option><option value="basic">أساسي</option><option value="intermediate">متوسط</option><option value="advanced">متقدم</option></select></label><label>عدد الأسئلة<br><select id="count"><option>3</option><option>4</option><option>5</option><option>8</option><option selected>10</option><option>15</option><option>20</option></select></label></div><p class="hint">النجاح من 70%. لن تظهر الإجابات الصحيحة أثناء الاختبار؛ ستظهر بعد التسليم مع التفسير.</p><button class="primary" id="start">ابدأ الاختبار</button></section>
-<section class="panel hidden" id="exam"><div class="qtop"><span id="qcount"></span><span id="qmeta"></span></div><div class="progress"><span id="bar"></span></div><div class="question"><h2 id="prompt"></h2><div id="options"></div></div><div class="actions"><button id="prev">السابق</button><button class="primary" id="next">التالي</button><button class="gold hidden" id="submit">تسليم الاختبار</button><button id="quit">إنهاء دون حفظ</button></div></section>
+<section class="panel" id="publishedExams"><div class="qtop"><h2>الاختبارات المعتمدة</h2><span class="tag">نماذج المدير</span></div><p class="hint">اختر اختباراً منشوراً؛ ستُطبق مدته ودرجة النجاح وعدد أسئلته كما حددها المدير.</p><div id="publishedExamList" class="grid"><p class="muted">جارٍ تحميل الاختبارات…</p></div></section>
+<section class="panel" id="setup"><h2>التدريب الحر</h2><div class="controls"><label>المسار<br><select id="track"><option value="all">اختبار مختلط</option><option value="math">الرياضيات</option><option value="physics">الفيزياء</option></select></label><label>المستوى<br><select id="level"><option value="all">جميع المستويات</option><option value="basic">أساسي</option><option value="intermediate">متوسط</option><option value="advanced">متقدم</option></select></label><label>عدد الأسئلة<br><select id="count"><option>3</option><option>4</option><option>5</option><option>8</option><option selected>10</option><option>15</option><option>20</option></select></label></div><p class="hint">النجاح من 70%. لن تظهر الإجابات الصحيحة أثناء الاختبار؛ ستظهر بعد التسليم مع التفسير.</p><button class="primary" id="start">ابدأ الاختبار</button></section>
+<section class="panel hidden" id="exam"><div class="qtop"><span id="qcount"></span><span id="qmeta"></span><strong id="timer" class="tag">--:--</strong></div><div class="progress"><span id="bar"></span></div><div class="question"><h2 id="prompt"></h2><div id="options"></div></div><div class="actions"><button id="prev">السابق</button><button class="primary" id="next">التالي</button><button class="gold hidden" id="submit">تسليم الاختبار</button><button id="quit">إنهاء دون حفظ</button></div></section>
 <section class="result hidden" id="result"></section>
 <section class="panel" id="history"><h2>سجل النتائج</h2><div id="historyBody" class="muted">لم تسجل محاولات بعد.</div></section>
 <section class="panel"><h2>شهادات الإتمام</h2><p class="muted">تُتاح شهادة إتمام داخلية عند تحقيق 70% أو أكثر في اختبار المسار. الشهادة توثيق تعليمي من المنصة وليست اعتماداً أكاديمياً أو مهنياً رسمياً.</p><div id="certList" class="muted">لا توجد شهادات متاحة بعد.</div></section>
@@ -29,7 +30,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:18px}
 </main>
 <script>
 const $=id=>document.getElementById(id);
-let current=[],answers=[],pos=0,submitted=false,lastResult=null;
+let current=[],answers=[],pos=0,submitted=false,lastResult=null,activeSessionId=null,activeExam=null,expiresAt=null,timerHandle=null;
 const names={math:"الرياضيات",physics:"الفيزياء",all:"المسار المختلط"};
 const levels={basic:"أساسي",intermediate:"متوسط",advanced:"متقدم",all:"جميع المستويات"};
 const data=()=>window.msaExamData||{history:[],certificates:[]};
@@ -75,14 +76,29 @@ function renderReview(review){
  if(lastResult.certificate){const cert=el("button","عرض شهادة الإتمام","gold");cert.onclick=()=>showCert(lastResult.certificate);actions.append(cert)}
  host.append(actions);
 }
-async function submit(){
+async function submit(isTimeout=false){
  if(submitted)return;
- if(answers.some(x=>x===null)&&!confirm("هناك أسئلة دون إجابة. هل تريد التسليم الآن؟"))return;
- submitted=true;$("submit").disabled=true;$("submit").textContent="جارٍ التصحيح…";
- try{const result=await window.msaExamApi.submit($("track").value,$("level").value,current.map((q,i)=>({question_code:q.question_code,selected_index:answers[i]})));
- lastResult=result;renderReview(result.review);$("exam").classList.add("hidden");$("result").classList.remove("hidden");await window.msaExamApi.refresh()
+ if(!isTimeout&&answers.some(x=>x===null)&&!confirm("هناك أسئلة دون إجابة. هل تريد التسليم الآن؟"))return;
+ submitted=true;$("submit").disabled=true;$("submit").textContent=isTimeout?"انتهى الوقت؛ جارٍ التسليم…":"جارٍ التصحيح…";
+ try{const payload=current.map((q,i)=>({question_code:q.question_code,selected_index:answers[i]}));
+ const result=activeSessionId?await window.msaExamApi.submitDefined(activeSessionId,payload):await window.msaExamApi.submit($("track").value,$("level").value,payload);
+ stopTimer();lastResult=result;renderReview(result.review);$("exam").classList.add("hidden");$("result").classList.remove("hidden");await window.msaExamApi.refresh()
  }catch(e){submitted=false;$("submit").disabled=false;$("submit").textContent="تسليم الاختبار";alert("تعذر تصحيح الاختبار وحفظه: "+e.message)}
 }
+
+function stopTimer(){if(timerHandle){clearInterval(timerHandle);timerHandle=null}}
+function startTimer(expiry){expiresAt=new Date(expiry).getTime();stopTimer();const tick=()=>{const left=Math.max(0,Math.ceil((expiresAt-Date.now())/1000));$("timer").textContent=String(Math.floor(left/60)).padStart(2,"0")+":"+String(left%60).padStart(2,"0");if(left===0){stopTimer();submit(true)}};tick();timerHandle=setInterval(tick,1000)}
+async function beginDefinedExam(exam){
+ if(!window.msaExamApi){alert("خدمة الاختبارات لم تجهز بعد.");return}
+ try{
+ const session=await window.msaExamApi.begin(exam.id);activeSessionId=session.session_id;activeExam=exam;
+ current=session.questions||[];answers=Array(current.length).fill(null);pos=0;submitted=false;
+ $("setup").classList.add("hidden");$("publishedExams").classList.add("hidden");$("result").classList.add("hidden");$("exam").classList.remove("hidden");
+ $("qmeta").textContent=session.title+" · النجاح "+session.pass_score+"%";$("submit").disabled=false;$("submit").textContent="تسليم الاختبار";renderQ();startTimer(session.expires_at);
+ }catch(e){alert("تعذر بدء الاختبار: "+e.message)}
+}
+function renderPublishedExams(list){const host=$("publishedExamList");host.replaceChildren();if(!list.length){host.textContent="لا توجد اختبارات منشورة حالياً.";return}
+ for(const exam of list){const card=el("div",undefined,"stat"),title=el("b",exam.title),meta=el("p",(names[exam.track]||exam.track)+" · "+(levels[exam.level]||exam.level)),desc=el("p",exam.description||""),details=el("small",exam.question_count+" سؤال · "+exam.duration_minutes+" دقيقة · النجاح "+exam.pass_score+"%"),btn=el("button","ابدأ الاختبار","primary");btn.onclick=()=>beginDefinedExam(exam);card.append(title,meta,desc,details,el("p"),btn);host.append(card)} }
 $("start").onclick=start;$("prev").onclick=()=>{if(pos>0){pos--;renderQ()}};$("next").onclick=()=>{if(pos<current.length-1){pos++;renderQ()}};$("submit").onclick=submit;
 $("quit").onclick=()=>{if(confirm("سيتم إنهاء الاختبار دون تسجيل نتيجة. متابعة؟")){$("exam").classList.add("hidden");$("setup").classList.remove("hidden")}};
 $("closeCert").onclick=()=>$("certificateArea").classList.add("hidden");refresh();
@@ -104,9 +120,12 @@ async function refresh(){
  window.msaExamData={history:attempts.data||[],certificates:certs.data||[]};window.refreshExamUi?.()
 }
 window.msaExamApi={
+ async listPublished(){await requireUser();const{data,error}=await db.rpc("get_published_academy_exams");if(error)throw error;return data||[]},
+ async begin(examId){await requireUser();const{data,error}=await db.rpc("begin_academy_exam",{p_exam_id:examId});if(error)throw error;return data},
+ async submitDefined(sessionId,answers){await requireUser();const{data,error}=await db.rpc("submit_defined_academy_exam",{p_session_id:sessionId,p_answers:answers});if(error)throw error;return data},
  async getQuestions(track,level,limit){await requireUser();const{data,error}=await db.rpc("get_academy_exam_questions",{p_track:track,p_level:level,p_limit:limit});if(error)throw error;return data||[]},
  async submit(track,level,answers){await requireUser();const{data,error}=await db.rpc("submit_academy_exam",{p_track:track,p_level:level,p_answers:answers});if(error)throw error;return data},
  refresh
 };
-refresh().catch(e=>console.warn("تعذر تحميل سجل الاختبارات:",e.message));
+Promise.all([refresh(),window.msaExamApi.listPublished()]).then(([,list])=>renderPublishedExams(list)).catch(e=>{console.warn("تعذر تحميل الاختبارات:",e.message);const host=document.getElementById("publishedExamList");if(host)host.textContent=e.message});
 </script></body></html>
