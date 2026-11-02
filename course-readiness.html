@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#081321"><title>جاهزية المقررات | أكاديمية الأرصاد</title>
+<style>
+:root{--bg:#081321;--p:#102137;--p2:#142b42;--line:#29445d;--txt:#edf6ff;--muted:#a9bfd2;--cyan:#42d6e8;--gold:#f4c45e;--green:#55d6a0;--red:#ff7777}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#173651,transparent 38%),var(--bg);color:var(--txt);font:15px/1.85 Tahoma,Arial,sans-serif}.wrap{max-width:1250px;margin:auto;padding:22px}
+header,.row,.actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,var(--cyan),#2879b8);display:grid;place-items:center;color:#06202b;font-size:22px}
+.panel,.stat,.course{background:var(--p);border:1px solid var(--line);border-radius:15px;padding:16px;margin:13px 0}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat b{display:block;font-size:27px;color:var(--gold)}.muted,small{color:var(--muted)}.eyebrow{color:var(--cyan);font-weight:bold;font-size:13px}
+input{font:inherit;color:var(--txt);background:#091827;border:1px solid var(--line);border-radius:9px;padding:10px;width:100%;margin-top:5px}.fields{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+button,.btn{font:inherit;border:1px solid var(--line);border-radius:9px;padding:8px 13px;background:var(--p2);color:var(--txt);cursor:pointer;text-decoration:none}.primary{background:var(--cyan);color:#05202a;border-color:var(--cyan);font-weight:bold}
+.status{padding:10px 12px;background:#0b1928;border-right:3px solid var(--cyan);border-radius:8px;margin:10px 0}.hidden{display:none!important}
+.course h2{margin:0}.tag{padding:2px 9px;border:1px solid var(--line);border-radius:20px;font-size:12px}.blocked{color:#ffaaaa;border-color:#824747}.ready{color:var(--green);border-color:#286b55}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.metric{background:#0a1a2a;border-radius:9px;padding:10px}.metric b{display:block;font-size:20px}
+.progress{height:8px;background:#263d51;border-radius:10px;overflow:hidden;margin-top:7px}.progress span{display:block;height:100%;background:var(--cyan)}
+@media(max-width:760px){.wrap{padding:12px}.grid{grid-template-columns:repeat(2,1fr)}.metrics{grid-template-columns:repeat(2,1fr)}.fields{grid-template-columns:1fr}}
+</style></head><body><main class="wrap">
+<header><div class="brand"><div class="logo">◈</div><div><b>لوحة جاهزية المقررات</b><div class="muted">Course Readiness & Publication Gates</div></div></div><div class="actions"><a class="btn" href="admin.html">الإدارة</a><a class="btn" href="content-review.html">المراجعة العلمية</a><a class="btn" href="content-qa.html">تدقيق الجودة</a></div></header>
+<section class="panel"><div class="eyebrow">بوابة ما قبل النشر</div><h1>هل أصبح المقرر جاهزاً؟</h1><p class="muted">يجمع التقرير حالة المراجعة العلمية، وأهداف التعلم، والاختبارات، وتسلسل الفصول والوحدات. النتيجة إرشادية ولا تنشر أي محتوى تلقائياً.</p>
+<div class="fields"><label>رابط Supabase<input id="url" type="url" placeholder="https://project.supabase.co"></label><label>Publishable key<input id="key" type="password" autocomplete="off"></label><label>البريد الإلكتروني<input id="email" type="email" autocomplete="username"></label><label>كلمة المرور<input id="password" type="password" autocomplete="current-password"></label></div>
+<div class="actions" style="margin-top:12px"><button id="connect" class="primary">دخول المدير وتحميل التقرير</button><button id="refresh" disabled>تحديث</button><button id="logout" class="hidden">خروج</button></div><div id="status" class="status">يلزم تسجيل الدخول بحساب مدير.</div></section>
+<section id="report" class="hidden"><div class="grid">
+<div class="stat"><b id="courses">0</b>إجمالي المقررات</div><div class="stat"><b id="ready">0</b>مقررات جاهزة</div><div class="stat"><b id="blocked">0</b>مقررات عليها موانع</div><div class="stat"><b id="lessons">0</b>إجمالي الدروس</div>
+</div><div class="panel"><div class="row"><h2>ملخص التنفيذ</h2><small id="generated"></small></div><div class="grid">
+<div class="metric"><b id="approved">0</b>دروس معتمدة</div><div class="metric"><b id="pending">0</b>بانتظار المراجعة</div><div class="metric"><b id="noObjectives">0</b>دروس بلا ربط أهداف</div><div class="metric"><b id="noQuiz">0</b>دروس بلا اختبار منشور</div></div></div>
+<div id="coursesList"></div></section>
+</main><script type="module">
+import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm";
+import{SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY}from"./supabase-config.js";
+const $=id=>document.getElementById(id),STORE="msa-supabase-config-v1";let db=null;
+function say(t,bad=false){$("status").textContent=t;$("status").style.borderRightColor=bad?"#ff7777":"#42d6e8"}
+function metric(label,value){const d=document.createElement("div");d.className="metric";const b=document.createElement("b");b.textContent=value;d.append(b,document.createTextNode(label));return d}
+function render(data){
+ const s=data.summary||{},courses=Array.isArray(data.courses)?data.courses:[];
+ for(const [id,val] of Object.entries({courses:s.courses_total,ready:s.courses_ready,blocked:s.courses_blocked,lessons:s.lessons_total,approved:s.lessons_approved,pending:s.lessons_pending_review,noObjectives:s.lessons_without_objectives,noQuiz:s.lessons_without_quiz}))$(id).textContent=val??0;
+ $("generated").textContent="آخر تحديث: "+new Date(data.generated_at||Date.now()).toLocaleString("ar");
+ const list=$("coursesList");list.replaceChildren();
+ for(const c of courses){
+  const card=document.createElement("article");card.className="course";
+  const head=document.createElement("div");head.className="row";
+  const title=document.createElement("h2");title.textContent=c.title||c.id;
+  const badge=document.createElement("span");badge.className="tag "+(c.has_readiness_blockers?"blocked":"ready");badge.textContent=c.has_readiness_blockers?"غير جاهز للنشر":"مستوفٍ لمعايير الجاهزية";
+  head.append(title,badge);card.append(head);
+  const sub=document.createElement("p");sub.className="muted";sub.textContent="الحالة: "+(c.published?"منشور":"مسودة")+" · الفصول: "+c.chapter_count+" · الوحدات: "+c.unit_count;card.append(sub);
+  const stats=document.createElement("div");stats.className="metrics";
+  [[ "الدروس",c.lesson_count],["المعتمدة",c.approved_lessons],["بانتظار المراجعة",c.pending_review_lessons],["طلب تعديل",c.changes_requested_lessons],["مرفوضة",c.rejected_lessons],["بلا أهداف مرتبطة",c.lessons_without_objective_mapping],["بلا اختبار منشور",c.lessons_without_published_quiz],["بلا فصل أو وحدة",c.lessons_without_hierarchy]].forEach(([l,v])=>stats.append(metric(l,v??0)));
+  card.append(stats);
+  const pct=c.lesson_count?Math.round(c.approved_lessons/c.lesson_count*100):0,bar=document.createElement("div");bar.className="progress";const fill=document.createElement("span");fill.style.width=pct+"%";bar.append(fill);card.append(bar);
+  const foot=document.createElement("small");foot.textContent="نسبة اعتماد الدروس: "+pct+"% · لا يتم النشر تلقائياً.";card.append(foot);list.append(card);
+ }
+ $("report").classList.remove("hidden");
+}
+async function load(){ $("refresh").disabled=true;say("جارٍ إنشاء تقرير الجاهزية…");const{data,error}=await db.rpc("get_academy_course_readiness_report");if(error){say("فشل التقرير: "+error.message,true);$("refresh").disabled=false;return}render(data);$("refresh").disabled=false;say("اكتمل التقرير. لم يتم تعديل أو نشر أي محتوى.")}
+async function connect(){
+ const url=$("url").value.trim(),key=$("key").value.trim(),email=$("email").value.trim(),password=$("password").value;
+ if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)||!key||!email||!password){say("أكمل بيانات الاتصال المطلوبة.",true);return}
+ localStorage.setItem(STORE,JSON.stringify({url,key}));db=createClient(url,key);say("جارٍ التحقق من الحساب…");
+ const{error}=await db.auth.signInWithPassword({email,password});if(error){say("فشل تسجيل الدخول: "+error.message,true);return}
+ const{data:{user}}=await db.auth.getUser();const{data:profile,error:pe}=await db.from("academy_profiles").select("role").eq("id",user.id).maybeSingle();
+ if(pe||profile?.role!=="admin"){await db.auth.signOut();say("تم رفض الوصول: هذه الصفحة للمدير فقط.",true);return}
+ $("logout").classList.remove("hidden");await load();
+}
+$("connect").onclick=connect;$("refresh").onclick=load;$("logout").onclick=async()=>{if(db)await db.auth.signOut();db=null;$("report").classList.add("hidden");$("logout").classList.add("hidden");say("تم تسجيل الخروج.")};
+try{const saved=JSON.parse(localStorage.getItem(STORE)||"{}");$("url").value=saved.url||SUPABASE_URL||"";$("key").value=saved.key||SUPABASE_PUBLISHABLE_KEY||""}catch{$("url").value=SUPABASE_URL||"";$("key").value=SUPABASE_PUBLISHABLE_KEY||""}
+</script></body></html>
