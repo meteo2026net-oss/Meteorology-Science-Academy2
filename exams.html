@@ -50,6 +50,7 @@ function refresh(){
 window.refreshExamUi=refresh;
 function showCert(cert){if(!cert)return;$("certificateArea").classList.remove("hidden");$("certName").textContent=cert.student_name||"طالب الأكاديمية";$("certTrack").textContent=names[cert.track]||cert.track;$("certScore").textContent="نتيجة الاجتياز: "+cert.score+"%";$("certDate").textContent="تاريخ الإصدار: "+new Date(cert.issued_at).toLocaleDateString("ar")+" · رقم الشهادة: "+cert.certificate_code;$("certificateArea").scrollIntoView({behavior:"smooth"})}
 async function start(){
+ activeSessionId=null;activeExam=null;stopTimer();
  if(!window.msaExamApi){alert("خدمة الاختبارات لم تجهز بعد. أعد تحميل الصفحة.");return}
  const track=$("track").value,level=$("level").value,count=Number($("count").value);
  try{const pool=await window.msaExamApi.getQuestions(track,level,100);
@@ -82,7 +83,7 @@ async function submit(isTimeout=false){
  submitted=true;$("submit").disabled=true;$("submit").textContent=isTimeout?"انتهى الوقت؛ جارٍ التسليم…":"جارٍ التصحيح…";
  try{const payload=current.map((q,i)=>({question_code:q.question_code,selected_index:answers[i]}));
  const result=activeSessionId?await window.msaExamApi.submitDefined(activeSessionId,payload):await window.msaExamApi.submit($("track").value,$("level").value,payload);
- stopTimer();lastResult=result;renderReview(result.review);$("exam").classList.add("hidden");$("result").classList.remove("hidden");await window.msaExamApi.refresh()
+ activeSessionId=null;activeExam=null;stopTimer();lastResult=result;renderReview(result.review);$("exam").classList.add("hidden");$("result").classList.remove("hidden");await window.msaExamApi.refresh()
  }catch(e){submitted=false;$("submit").disabled=false;$("submit").textContent="تسليم الاختبار";alert("تعذر تصحيح الاختبار وحفظه: "+e.message)}
 }
 
