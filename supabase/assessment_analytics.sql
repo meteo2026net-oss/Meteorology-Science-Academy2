@@ -46,6 +46,8 @@ begin
       'lessons_missing_hierarchy', (select count(*) from public.academy_lessons where chapter_id is null or unit_id is null),
       'student_profiles', (select count(*) from public.academy_profiles where role = 'student'),
       'progress_records', (select count(*) from public.academy_lesson_progress),
+      'lab_attempts', (select count(*) from public.academy_lab_attempts),
+      'students_with_lab_activity', (select count(distinct user_id) from public.academy_lab_attempts),
       'certificates', (select count(*) from public.academy_certificates)
     )
   );
