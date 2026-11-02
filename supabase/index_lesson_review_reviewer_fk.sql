@@ -1,0 +1,1 @@
+create index if not exists academy_lesson_reviews_reviewer_id_idx on private.academy_lesson_reviews(reviewer_id);
