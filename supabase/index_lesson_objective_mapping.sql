@@ -1,0 +1,2 @@
+create index if not exists academy_lesson_objectives_objective_code_idx on private.academy_lesson_objectives(objective_code);
+comment on index private.academy_lesson_objectives_objective_code_idx is 'Supports objective-to-lesson lookups and objective foreign-key maintenance.';
