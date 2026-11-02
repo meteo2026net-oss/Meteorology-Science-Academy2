@@ -57,6 +57,11 @@ create index if not exists academy_units_chapter_order_idx
 create index if not exists academy_lessons_hierarchy_order_idx
   on public.academy_lessons(course_id, chapter_id, unit_id, sort_order);
 
+-- The public-read policies also evaluate the admin predicate for anon requests.
+-- This helper only returns a boolean and evaluates auth.uid() as NULL for anon.
+grant usage on schema private to anon;
+grant execute on function private.is_academy_admin() to anon;
+
 alter table public.academy_chapters enable row level security;
 alter table public.academy_units enable row level security;
 
