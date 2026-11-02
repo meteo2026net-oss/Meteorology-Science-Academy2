@@ -31,7 +31,7 @@
 import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
 const $=id=>document.getElementById(id),STORE="msa-supabase-config-v1";
-let db=null,questions=[],exams=[],courses=[];
+let db=null,questions=[],exams=[],courses=[],editingExamId=null;
 const say=(m,bad=false)=>{$("status").textContent=m;$("status").className="status "+(bad?"bad":"good")};
 const loginSay=(m,bad=false)=>{$("loginStatus").textContent=m;$("loginStatus").className="status "+(bad?"bad":"good")};
 const node=(tag,txt,cls)=>{const n=document.createElement(tag);if(txt!==undefined)n.textContent=txt;if(cls)n.className=cls;return n};
@@ -87,14 +87,21 @@ async function toggleQuestion(q){
 function renderExams(){
  const host=$("examList");host.replaceChildren();
  if(!exams.length){host.textContent="لم تنشئ نماذج اختبارات بعد.";return}
- for(const e of exams){const card=node("div",undefined,"item");card.append(node("b",e.title),node("small",(e.track==="math"?"رياضيات":"فيزياء")+" · "+({basic:"أساسي",intermediate:"متوسط",advanced:"متقدم"}[e.level])+" · "+e.question_count+" سؤال · "+e.duration_minutes+" دقيقة · نجاح "+e.pass_score+"% · "+(e.published?"مفعّل":"مسودة")),node("p",e.description||""));host.append(card)}
+ for(const e of exams){const card=node("div",undefined,"item");card.append(node("b",e.title),node("small",(e.track==="math"?"رياضيات":"فيزياء")+" · "+({basic:"أساسي",intermediate:"متوسط",advanced:"متقدم"}[e.level])+" · "+e.question_count+" سؤال · "+e.duration_minutes+" دقيقة · نجاح "+e.pass_score+"% · "+(e.published?"مفعّل":"مسودة")),node("p",e.description||""));const edit=node("button","تعديل النموذج");edit.onclick=()=>editExam(e);card.append(edit);host.append(card)}
+}
+function editExam(e){
+ editingExamId=e.id;$("examTitle").value=e.title;$("examDescription").value=e.description||"";$("course").value=e.course_id||"";
+ $("examTrack").value=e.track;$("examLevel").value=e.level;$("duration").value=e.duration_minutes;
+ $("questionCount").value=e.question_count;$("passScore").value=e.pass_score;$("examPublished").value=String(e.published);
+ $("saveExam").textContent="حفظ تعديلات النموذج";window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});
 }
 async function saveExam(){
- const payload={title:$("examTitle").value.trim(),description:$("examDescription").value.trim(),course_id:$("course").value,track:$("examTrack").value,level:$("examLevel").value,duration_minutes:Number($("duration").value),question_count:Number($("questionCount").value),pass_score:Number($("passScore").value),published:$("examPublished").value==="true"};
+ const payload={id:editingExamId,title:$("examTitle").value.trim(),description:$("examDescription").value.trim(),course_id:$("course").value,track:$("examTrack").value,level:$("examLevel").value,duration_minutes:Number($("duration").value),question_count:Number($("questionCount").value),pass_score:Number($("passScore").value),published:$("examPublished").value==="true"};
  const {data,error}=await db.rpc("admin_save_exam_definition",{p_data:payload});
  if(error){say(error.message,true);return}
- $("examTitle").value="";$("examDescription").value="";await load();say("تم حفظ نموذج الاختبار.")
+ editingExamId=null;$("examTitle").value="";$("examDescription").value="";$("saveExam").textContent="حفظ نموذج الاختبار";await load();say("تم حفظ نموذج الاختبار.")
 }
+
 $("connect").onclick=()=>connect().catch(e=>loginSay(e.message,true));
 $("saveQuestion").onclick=()=>saveQuestion().catch(e=>say(e.message,true));
 $("resetQuestion").onclick=resetQuestion;$("filterTrack").onchange=renderQuestions;$("saveExam").onclick=()=>saveExam().catch(e=>say(e.message,true));
